@@ -61,3 +61,7 @@ temp/
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
+
+# Build outputs
+dist/
+build/
