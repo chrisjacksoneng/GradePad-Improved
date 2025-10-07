@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap">
-    <link rel="stylesheet" href="styles/styles.css">
+    <!-- Removed external styles.css to prevent conflicts -->
     <link rel="icon" type="image/png" href="assets/images/gradepadlogo.png">
     <title>GradePad - Clean Version</title>
     <style>
@@ -125,23 +125,385 @@
             background-color: #f44336;
             color: white;
         }
+        
+        /* Modern dark theme inspired by professional design */
+        body {
+            background: #0a0a0a !important;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+            color: #ffffff !important;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        
+        .topBar {
+            background-color: rgba(15, 15, 15, 0.95) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+            padding: 20px 0;
+        }
+        
+        .semester-container {
+            background-color: rgba(20, 20, 20, 0.8) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .semester-container:hover {
+            box-shadow: 0 12px 48px rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        
+        #welcome {
+            text-align: center;
+            color: #ffffff !important;
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin: 40px 0;
+            letter-spacing: -0.02em;
+            background-color: transparent !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        #addSemester {
+            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%) !important;
+            color: #0a0a0a !important;
+            border: none !important;
+            border-radius: 8px;
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            margin: 0 auto !important;
+            position: absolute !important;
+            left: 50% !important;
+            top: 50% !important;
+            transform: translate(-50%, -50%) !important;
+        }
+        
+        #addSemester:hover {
+            transform: translate(-50%, -52%) !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #f8f8f8 0%, #e8e8e8 100%) !important;
+        }
+        
+        /* Header styling */
+        .gradePadWriting {
+            color: #ffffff !important;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+        
+        .logo {
+            filter: brightness(0) invert(1);
+        }
+        
+        /* Navigation styling */
+        .sidenav {
+            background-color: rgba(15, 15, 15, 0.95) !important;
+            backdrop-filter: blur(20px);
+        }
+        
+        .sidenav a {
+            color: #ffffff !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidenav a:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        /* Button styling */
+        button {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 6px;
+            padding: 10px 16px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        button:hover {
+            background-color: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+        }
+        
+        /* Input styling */
+        input, select {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 6px;
+            padding: 12px 16px;
+        }
+        
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.6) !important;
+        }
+        
+        /* Modal styling update */
+        #settingsModal .modal-content,
+        #addSemesterModal .modal-content {
+            background-color: rgba(20, 20, 20, 0.95) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+        }
+        
+        /* Remove any white backgrounds */
+        .modal {
+            background-color: rgba(0, 0, 0, 0.8) !important;
+        }
+        
+        /* Ensure all containers are dark */
+        div {
+            background-color: transparent !important;
+        }
+        
+        /* Fix any white content areas */
+        .content, .main-content, .page-content {
+            background-color: transparent !important;
+        }
+        
+        /* Override any white backgrounds from external CSS - be more specific */
+        div:not(.semester-container):not(.semester-card):not(.modal-content) {
+            background-color: transparent !important;
+        }
+        
+        body, html {
+            background-color: #0a0a0a !important;
+        }
+        
+        /* Specific overrides for common white backgrounds */
+        .container, .wrapper, .main, .content-area {
+            background-color: transparent !important;
+        }
+        
+        /* Fix the welcome section */
+        #welcome {
+            background-color: transparent !important;
+        }
+        
+        .close {
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+        
+        .close:hover {
+            color: #ffffff !important;
+        }
+        
+        /* Semester card glow effect */
+        .semester-card {
+            background-color: rgba(25, 25, 25, 0.8) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px;
+            width: 280px;
+            display: inline-block;
+            vertical-align: top;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .semester-card:hover {
+            box-shadow: 0 8px 32px rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .semester-card h3 {
+            margin: 0 0 15px 0;
+            color: #ffffff !important;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+        
+        .semester-card p {
+            margin: 8px 0;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
+        
+        .semester-card button {
+            margin: 8px 8px 0 0;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .open-semester {
+            background-color: rgba(255, 255, 255, 0.9) !important;
+            color: #0a0a0a !important;
+        }
+        
+        .open-semester:hover {
+            background-color: #ffffff !important;
+            transform: translateY(-1px);
+        }
+        
+        .delete-semester {
+            background-color: rgba(244, 67, 54, 0.8) !important;
+            color: #ffffff !important;
+        }
+        
+        .delete-semester:hover {
+            background-color: #f44336 !important;
+            transform: translateY(-1px);
+        }
+        
+        /* Restore topbar to original working state with dark theme */
+        .top {
+            background-color: rgba(15, 15, 15, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .topBar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .leftSection {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .rightControls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .googleAuth button {
+            display: flex !important;
+            align-items: center;
+            gap: 8px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            padding: 10px 16px;
+            cursor: pointer;
+        }
+        
+        #menuIcon {
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 30px;
+            margin-right: 20px;
+        }
+        
+        .gradePadWriting {
+            color: #ffffff !important;
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0;
+            letter-spacing: -0.01em;
+        }
+        
+        .logo {
+            width: 40px;
+            height: 40px;
+            filter: brightness(0) invert(1);
+            margin-right: 15px;
+        }
+        
+        .sidenav {
+            height: 100%;
+            width: 250px;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: -250px;
+            background-color: rgba(15, 15, 15, 0.95);
+            padding-top: 60px;
+            transition: left 0.3s;
+        }
+        
+        .sidenav a {
+            padding: 15px 25px;
+            text-decoration: none;
+            font-size: 18px;
+            color: #ffffff;
+            display: block;
+            transition: 0.3s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidenav a:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        .sidenav.active {
+            left: 0;
+        }
+        
+        /* Form styling */
+        .form-group {
+            margin: 15px 0;
+        }
+        
+        .form-group label {
+            display: block;
+            color: #ffffff;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            box-sizing: border-box;
+        }
+        
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        hr {
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
     <div class="top">
         <div class="topBar">
-            <div id="mySidenav" class="sidenav">
-                <a href="index.html">Home Page</a>
-                <a href="#">My Profile</a>
-                <a href="#">Settings</a>
-                <a href="#">Report an Issue</a>
+            <div class="leftSection">
+                <span id="menuIcon" style="font-size:30px; cursor:pointer">&#9776;</span> 
+                <a href="index.html">
+                    <img src="assets/images/gradepadlogo.png" class="logo">
+                </a>
+                <h1 class="gradePadWriting">GradePad</h1>
             </div>
-            <span id="menuIcon" style="font-size:30px; cursor:pointer">&#9776;</span> 
-                
-            <a href="index.html">
-                <img src="assets/images/gradepadlogo.png" class="logo">
-            </a>
-            <h1 class="gradePadWriting">GradePad</h1>
             <div class="rightControls">
                 <div class="googleAuth">
                     <button id="loginBtn" style="display: flex; align-items: center; gap: 8px;">
@@ -156,7 +518,16 @@
                   </div>
                 </div>
                 <button id="settingsIcon">⛭</button>
-              </div>              
+              </div>
+        </div>
+    </div>
+    
+    <div id="mySidenav" class="sidenav">
+        <a href="index.html">Home Page</a>
+        <a href="#">My Profile</a>
+        <a href="#">Settings</a>
+        <a href="#">Report an Issue</a>
+    </div>              
             <div id="settingsModal" class="modal">
                 <div class="modal-content">
                     <span class="close">&times;</span>
