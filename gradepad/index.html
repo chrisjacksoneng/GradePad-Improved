@@ -6,7 +6,11 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap">
     <link rel="stylesheet" href="styles/styles.css">
     <link rel="icon" type="image/png" href="assets/images/gradepadlogo.png">
-    <title>GradePad</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2196F3">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="description" content="Track your grades and calculate GPA with GradePad">
+    <title>GradePad - Grade Tracking Made Simple</title>
 </head>
 <body>
     <div class="top">
@@ -89,10 +93,12 @@
     </div>
 </div>
 
+<script type="module" src="jsScripts/errorHandler.js"></script>
 <script type="module" src="jsScripts/firebase.js"></script>
 <script type="module" src="jsScripts/auth.js"></script>
 <script type="module" src="jsScripts/main.js"></script>
 <script type="module" src="jsScripts/db.js"></script>
+<script type="module" src="jsScripts/pwa.js"></script>
 
 </body>
 </html>

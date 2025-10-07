@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap">
+  <link rel="icon" type="image/png" href="/assets/gradepadlogo-CEWE7vau.png">
+  <title>GradePad</title>
+  <script type="module" crossorigin src="/assets/grades-CGSoUlBm.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/auth-CNSAiOnX.js">
+  <link rel="stylesheet" crossorigin href="/assets/auth-C0RN3ZWk.css">
+  <script type="module">import.meta.url;import("_").catch(()=>1);(async function*(){})().next();window.__vite_is_modern_browser=true</script>
+  <script type="module">!function(){if(window.__vite_is_modern_browser)return;console.warn("vite: loading legacy chunks, syntax error above and the same error below should be ignored");var e=document.getElementById("vite-legacy-polyfill"),n=document.createElement("script");n.src=e.src,n.onload=function(){System.import(document.getElementById('vite-legacy-entry').getAttribute('data-src'))},document.body.appendChild(n)}();</script>
+</head>
+<body>
+  <div class="top">
+    <div class="topBar">
+        <div id="mySidenav" class="sidenav">
+            <a href="index.html">Home Page</a>
+            <a href="#">My Profile</a>
+            <a href="#">Settings</a>
+            <a href="#">Report an Issue</a>
+        </div>
+      <span id="menuIcon" style="font-size:30px; cursor:pointer" onclick="toggleNav()">&#9776;</span>
+      <a href="index.html">
+        <img src="/assets/gradepadlogo-CEWE7vau.png" class="logo">
+      </a>
+      <h1 class="gradePadWriting">GradePad</h1>
+      <div class="rightControls">
+        <div class="googleAuth">
+          <button id="loginBtn" style="display: flex; align-items: center; gap: 8px;">
+            <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo" style="width:18px;">
+            Sign in with Google
+          </button>          
+          <div id="userDropdownContainer" class="user-dropdown hidden">
+            <button id="userNameDisplay"></button>
+            <div id="dropdownMenu" class="dropdown-menu hidden">
+              <button id="signOutBtn">Sign Out</button>
+            </div>
+          </div>
+        </div>
+        <button id="settingsIcon">⛭</button>
+      </div>
+    </div>
+      <div id="settingsModal" class="modal">
+        <div class="modal-content">
+          <span class="close">&times;</span>
+          <h3>GradePad Settings</h3>
+          <p>Change Theme Preset:
+            <select id="themeSelector">
+              <option value="default">Default (Blue)</option>
+              <option value="waterloo">University of Waterloo</option>
+              <option value="pastel">Pastel</option>
+              <option value="forest">Forest</option>
+              <option value="purple">Purple</option>
+            </select>
+          </p>          
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-summary" class="titleRow">
+    <input type="text" placeholder="Page Title (e.g. Spring 2025)" id="page-title" readonly>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+          const pageTitleInput = document.getElementById("page-title");
+        
+          // Function to update width based on content.
+          function updateWidth() {
+            // Create a temporary span element to measure text width.
+            const tempSpan = document.createElement("span");
+            // Inherit font styles from the input.
+            const computedStyle = window.getComputedStyle(pageTitleInput);
+            tempSpan.style.fontFamily = computedStyle.fontFamily;
+            tempSpan.style.fontSize = computedStyle.fontSize;
+            tempSpan.style.visibility = "hidden";
+            tempSpan.style.whiteSpace = "nowrap";
+            // Use the input's current value.
+            tempSpan.textContent = pageTitleInput.value || "";
+            document.body.appendChild(tempSpan);
+            // Calculate new width plus a small buffer.
+            const newWidth = tempSpan.offsetWidth + 20;
+            document.body.removeChild(tempSpan);
+            // Update the input's width.
+            pageTitleInput.style.width = newWidth + "px";
+          }
+        
+          // Update width when user types.
+          pageTitleInput.addEventListener("input", updateWidth);
+        
+          // Read query parameters from URL.
+          const params = new URLSearchParams(window.location.search);
+          const semesterName = params.get("semesterName");
+          if (semesterName) {
+            pageTitleInput.value = semesterName;
+            updateWidth(); // Adjust width based on the new value.
+          }
+        });
+        </script>
+        
+        
+    <span id="current-gpa">Term GPA: 0.00</span>
+  </div>
+
+  <div class="table-container">
+    <div class="table-wrapper">
+      <table>
+        <tr>
+          <td colspan="6" class="courseHeader">
+            <div class="courseContainer">
+              <div class="titleBox">
+                <input type="text" placeholder="Insert Course Code" class="courseCode">
+                <button class="deleteButton" title="Delete Table">🗑️</button>
+                <button class="fullScreen" title="Collapse Table">←</button>
+                <input type="text" placeholder="Insert Course Topic" class="courseTopic">
+                <button class="syllabusButton" title="Parse Syllabus">📄</button>
+                <div class="syllabusModal modal">
+                  <div class="modal-content" class="syllabusmodalcontent">
+                    <span class="close">&times;</span>
+                    <textarea class="syllabusTextbox" placeholder="Paste the course syllabus here..."></textarea>
+                    <button class="parseSyllabusButton">Parse Syllabus</button>
+                    <p class="syllabusNote">Note: Syllabus parsing is not always 100% accurate. Please double check all values match the syllabus.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr class="columnTitles">
+          <th>Evaluation</th>
+          <th class="collapse-hide">Due</th>
+          <th>Mark</th>
+          <th class="collapse-hide">Weight</th>
+          <th class="collapse-hide">Lost</th>
+          <th class="collapse-hide">Actions</th>
+        </tr>
+        <tr>
+          <td><input type="text" placeholder="Evaluation 1"></td>
+          <td><input type="text" class="dueInput"></td>
+          <td><input type="text" class="gradeInput"></td>
+          <td><input type="text" class="weightInput"></td>
+          <td><span class="lostOutput">—</span></td>
+          <td class="actionsColumn">
+            <button class="addRowBtn" title="Add row below">+</button>
+            <button class="removeRowBtn" title="Remove selected row">-</button>
+            <button class="moveRowBtn" title="Move selected row">&#9776;</button>
+          </td>
+        </tr>
+        <tr>
+          <td><input type="text" placeholder="Evaluation 2"></td>
+          <td><input type="text" class="dueInput"></td>
+          <td><input type="text" class="gradeInput"></td>
+          <td><input type="text" class="weightInput"></td>
+          <td><span class="lostOutput">—</span></td>
+          <td class="actionsColumn">
+            <button class="addRowBtn" title="Add row below">+</button>
+            <button class="removeRowBtn" title="Remove selected row">-</button>
+            <button class="moveRowBtn" title="Move selected row">&#9776;</button>
+          </td>
+        </tr>
+        <tr>
+          <td><input type="text" placeholder="Evaluation 3"></td>
+          <td><input type="text" class="dueInput"></td>
+          <td><input type="text" class="gradeInput"></td>
+          <td><input type="text" class="weightInput"></td>
+          <td><span class="lostOutput">—</span></td>
+          <td class="actionsColumn">
+            <button class="addRowBtn" title="Add row below">+</button>
+            <button class="removeRowBtn" title="Remove selected row">-</button>
+            <button class="moveRowBtn" title="Move selected row">&#9776;</button>
+          </td>
+        </tr>
+        <tr id="finalGradeRow">
+          <td colspan="2" style="font-weight: bold; text-align: left; background-color: var(--final-grade-bg); color: black; padding: 14px;">
+            Current Mark:
+          </td>
+          <td colspan="2" class="finalGrade" style="font-weight: bold; text-align: left; background-color: var(--final-grade-bg); color: black; padding: 14px;">
+            0.00%
+          </td>
+          <td colspan="2" style="text-align: right; background-color: var(--final-grade-bg); padding: 14px;">
+            [<select class="courseUnitsDropdown">
+              <option value="0.25">0.25 units</option>
+              <option value="0.50" selected>0.50 units</option>
+              <option value="0.75">0.75 units</option>
+              <option value="1.00">1.00 units</option>
+              <option value="1.50">1.50 units</option>
+              <option value="2.00">2.00 units</option>
+            </select>]
+          </td>
+        </tr>
+        
+      </table>
+    </div>
+    <button id="addTable">+ Course</button>
+  </div>
+
+
+  <script nomodule>!function(){var e=document,t=e.createElement("script");if(!("noModule"in t)&&"onbeforeload"in t){var n=!1;e.addEventListener("beforeload",(function(e){if(e.target===t)n=!0;else if(!e.target.hasAttribute("nomodule")||!n)return;e.preventDefault()}),!0),t.type="module",t.src=".",e.head.appendChild(t),t.remove()}}();</script>
+  <script nomodule crossorigin id="vite-legacy-polyfill" src="/assets/polyfills-legacy-Bm7qw8y8.js"></script>
+  <script nomodule crossorigin id="vite-legacy-entry" data-src="/assets/grades-legacy-DvJlgr3r.js">System.import(document.getElementById('vite-legacy-entry').getAttribute('data-src'))</script>
+</body>
+</html>

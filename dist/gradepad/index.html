@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap">
+    <link rel="icon" type="image/png" href="/assets/gradepadlogo-CEWE7vau.png">
+    <link rel="manifest" href="/assets/manifest-C-wtpS9S.json">
+    <meta name="theme-color" content="#2196F3">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="description" content="Track your grades and calculate GPA with GradePad">
+    <title>GradePad - Grade Tracking Made Simple</title>
+  <script type="module" crossorigin src="/assets/main-ghvkSbJu.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/auth-CNSAiOnX.js">
+  <link rel="stylesheet" crossorigin href="/assets/auth-C0RN3ZWk.css">
+  <script type="module">import.meta.url;import("_").catch(()=>1);(async function*(){})().next();window.__vite_is_modern_browser=true</script>
+  <script type="module">!function(){if(window.__vite_is_modern_browser)return;console.warn("vite: loading legacy chunks, syntax error above and the same error below should be ignored");var e=document.getElementById("vite-legacy-polyfill"),n=document.createElement("script");n.src=e.src,n.onload=function(){System.import(document.getElementById('vite-legacy-entry').getAttribute('data-src'))},document.body.appendChild(n)}();</script>
+</head>
+<body>
+    <div class="top">
+        <div class="topBar">
+            <div id="mySidenav" class="sidenav">
+                <a href="index.html">Home Page</a>
+                <a href="#">My Profile</a>
+                <a href="#">Settings</a>
+                <a href="#">Report an Issue</a>
+            </div>
+            <span id="menuIcon" style="font-size:30px; cursor:pointer" onclick="toggleNav()">&#9776;</span> 
+                
+            <a href="index.html">
+                <img src="/assets/gradepadlogo-CEWE7vau.png" class="logo">
+            </a>
+            <h1 class="gradePadWriting">GradePad</h1>
+            <div class="rightControls">
+                <div class="googleAuth">
+                    <button id="loginBtn" style="display: flex; align-items: center; gap: 8px;">
+                        <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo" style="width:18px;">
+                        Signin with Google
+                      </button>
+                    <div id="userDropdownContainer" class="user-dropdown hidden">
+                    <button id="userNameDisplay"></button>
+                    <div id="dropdownMenu" class="dropdown-menu hidden">
+                      <button id="signOutBtn">Sign Out</button>
+                    </div>
+                  </div>
+                </div>
+                <button id="settingsIcon">⛭</button>
+              </div>              
+            <div id="settingsModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h3>GradePad Settings</h3>   
+                    <p>Change Theme Preset:
+                        <select id="themeSelector">
+                          <option value="default">Default (Blue)</option>
+                          <option value="waterloo">University of Waterloo</option>
+                          <option value="pastel">Pastel</option>
+                          <option value="forest">Forest</option>
+                          <option value="purple">Purple</option>
+                        </select>
+                      </p>
+                                     
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="welcome">
+        <h1>Welcome to GradePad!</h1>
+    </div>
+
+    <!-- Semester Container -->
+    <div class="semester-container">
+        <!-- Semesters will be added here -->
+        
+        <!-- Add Semester Button (will stay on the right) -->
+        <button id="addSemester">+ <br>New</br> Semester</button>
+    </div>
+    
+<!-- Semester Modal -->
+<div id="addSemesterModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>Add New Semester</h3>
+        <div class="form-group">
+            <label for="semesterName">Semester Name:</label>
+            <input type="text" id="semesterName" placeholder="e.g., Fall 2023">
+        </div>
+        <div class="form-group">
+            <label for="startDate">Start Date:</label>
+            <input type="date" id="startDate">
+        </div>
+        <div class="form-group">
+            <label for="endDate">End Date:</label>
+            <input type="date" id="endDate">
+        </div>
+        <button id="saveSemester">Save Semester</button>
+    </div>
+</div>
+
+
+  <script nomodule>!function(){var e=document,t=e.createElement("script");if(!("noModule"in t)&&"onbeforeload"in t){var n=!1;e.addEventListener("beforeload",(function(e){if(e.target===t)n=!0;else if(!e.target.hasAttribute("nomodule")||!n)return;e.preventDefault()}),!0),t.type="module",t.src=".",e.head.appendChild(t),t.remove()}}();</script>
+  <script nomodule crossorigin id="vite-legacy-polyfill" src="/assets/polyfills-legacy-Bm7qw8y8.js"></script>
+  <script nomodule crossorigin id="vite-legacy-entry" data-src="/assets/main-legacy-BRFEJQQK.js">System.import(document.getElementById('vite-legacy-entry').getAttribute('data-src'))</script>
+</body>
+</html>
