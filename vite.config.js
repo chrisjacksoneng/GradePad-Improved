@@ -19,8 +19,9 @@ export default defineConfig({
     }
   },
   server: {
-    port: 3000,
-    open: true
+    port: 3003, // Use a different port to avoid conflicts
+    open: true,
+    host: true
   },
   define: {
     // Enable environment variables for client-side

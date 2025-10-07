@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap">
+    <link rel="stylesheet" href="styles/styles.css">
+    <title>GradePad Test - No Firebase</title>
+</head>
+<body>
+    <div class="top">
+        <div class="topBar">
+            <span id="menuIcon" style="font-size:30px; cursor:pointer" onclick="toggleNav()">&#9776;</span> 
+            <h1 class="gradePadWriting">GradePad Test</h1>
+            <button id="settingsIcon">⛭</button>
+        </div>
+    </div>
+    
+    <div id="welcome">
+        <h1>Welcome to GradePad Test!</h1>
+        <p>This version works without Firebase for testing.</p>
+    </div>
+
+    <!-- Semester Container -->
+    <div class="semester-container">
+        <button id="addSemester">+ <br>New</br> Semester</button>
+    </div>
+    
+    <!-- Semester Modal -->
+    <div id="addSemesterModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Add New Semester</h3>
+            <div class="form-group">
+                <label for="semesterName">Semester Name:</label>
+                <input type="text" id="semesterName" placeholder="e.g., Fall 2023">
+            </div>
+            <div class="form-group">
+                <label for="startDate">Start Date:</label>
+                <input type="date" id="startDate">
+            </div>
+            <div class="form-group">
+                <label for="endDate">End Date:</label>
+                <input type="date" id="endDate">
+            </div>
+            <button id="saveSemester">Save Semester</button>
+        </div>
+    </div>
+
+    <script>
+        // Simple test functions
+        function toggleNav() {
+            console.log('✅ Menu button clicked!');
+            alert('Menu button works!');
+        }
+
+        // Test button functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ Page loaded successfully');
+            
+            const addSemesterBtn = document.getElementById('addSemester');
+            const saveSemesterBtn = document.getElementById('saveSemester');
+            const settingsIcon = document.getElementById('settingsIcon');
+            
+            if (addSemesterBtn) {
+                addSemesterBtn.addEventListener('click', function() {
+                    console.log('✅ Add Semester button clicked!');
+                    document.getElementById('addSemesterModal').style.display = 'block';
+                });
+            }
+            
+            if (saveSemesterBtn) {
+                saveSemesterBtn.addEventListener('click', function() {
+                    console.log('✅ Save Semester button clicked!');
+                    const name = document.getElementById('semesterName').value;
+                    alert(`Semester "${name}" would be saved!`);
+                    document.getElementById('addSemesterModal').style.display = 'none';
+                });
+            }
+            
+            if (settingsIcon) {
+                settingsIcon.addEventListener('click', function() {
+                    console.log('✅ Settings button clicked!');
+                    alert('Settings button works!');
+                });
+            }
+            
+            // Close modal functionality
+            const closeBtn = document.querySelector('.close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function() {
+                    document.getElementById('addSemesterModal').style.display = 'none';
+                });
+            }
+            
+            console.log('✅ All event listeners attached');
+        });
+    </script>
+</body>
+</html>
