@@ -1,17 +1,17 @@
 :root {
   --bg-image: none;
   --bg-color: #000000;
-  --bg-secondary: #1a1a1a;
+  --bg-secondary: #000000;
   --text-color: #ffffff;
-  --text-secondary: #b0b0b0;
+  --text-secondary: #ffffff;
   --accent-color: #ffffff;
   --accent-glow: rgba(255, 255, 255, 0.3);
-  --button-bg-color: #1a1a1a;
-  --table-header-bg: #1a1a1a;
-  --table-row-alt-bg: #151515;
-  --final-grade-bg: #1a1a1a;
-  --card-bg: #1a1a1a;
-  --border-color: #333333;
+  --button-bg-color: #000000;
+  --table-header-bg: #000000;
+  --table-row-alt-bg: #000000;
+  --final-grade-bg: #000000;
+  --card-bg: #000000;
+  --border-color: rgba(255, 255, 255, 0.1);
 }
 
 body {
@@ -864,20 +864,76 @@ body {
   text-align: center;
   font-size: 1em;
   display: block;
-  background: var(--card-bg);
-  width: 80%;
-  border-radius: 15px;
-  border: 2px solid var(--border-color);
-  margin: auto;
-  min-width: 500px;
-  padding: 30px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  background: transparent;
+  width: 100%;
+  margin: 60px auto;
+  padding: 0;
   transition: all 0.3s ease;
 }
 
 #welcome h1 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  font-size: 5rem;
+  margin: 0;
+  padding: 0;
+}
+
+.welcome-text {
+  font-family: "Inter", sans-serif;
+  font-weight: 300;
+  font-size: 3rem;
   color: var(--text-color);
-  text-shadow: 0 0 10px var(--accent-glow);
+  letter-spacing: 0.05em;
+}
+
+.gradepad-text {
+  font-family: "Playfair Display", serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 5rem;
+  color: var(--text-color);
+  background: linear-gradient(90deg, #ffffff 0%, #ffffff 50%, #ffffff 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: lightSweep 3s ease-in-out infinite;
+  text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+}
+
+@keyframes lightSweep {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Responsive design for welcome text */
+@media (max-width: 768px) {
+  #welcome h1 {
+    flex-direction: column;
+    gap: 10px;
+    font-size: 3rem;
+  }
+
+  .welcome-text {
+    font-size: 2rem;
+  }
+
+  .gradepad-text {
+    font-size: 3.5rem;
+  }
+
+  #welcome {
+    width: 95%;
+    padding: 30px 20px;
+  }
 }
 
 /* ===== Semester Modal Styles ===== */
