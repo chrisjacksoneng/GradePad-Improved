@@ -3,8 +3,9 @@ import { setupThemeSelector } from './theme.js';
 import { setupSettingsModal, setupSemesterModal } from './modal.js';
 import { toggleNav } from './utils.js';
 import { loadSemesters } from "./db.js";
-import { deleteSemester } from './db.js'; // Add this at the top of the file
+import { deleteSemester } from './db.js';
 import { openEditSemesterModal } from './modal.js';
+import { onAuthStateChanged } from './auth.js';
 
 // 🔧 Attach dropdown/edit/delete functionality to a semester card
 function attachSemesterCardListeners(semesterCard) {
@@ -31,13 +32,13 @@ function attachSemesterCardListeners(semesterCard) {
     const semesterId = semesterCard.dataset.semesterId;
   
     if (confirm("Are you sure you want to delete this semester?")) {
-      if (semesterId) deleteSemester(semesterId); // ✅ Firestore delete
+      if (semesterId) deleteSemester(semesterId); // ✅ Delete from localStorage
       semesterCard.remove(); // 👋 remove from DOM
     }
   });
 }
 
-// 🔁 Recreate saved semesters from Firestore
+// 🔁 Recreate saved semesters from localStorage
 export async function initializeSavedSemesters() {
   const semesters = await loadSemesters();
   const semesterContainer = document.querySelector(".semester-container");
@@ -141,4 +142,11 @@ document.addEventListener("DOMContentLoaded", () => {
     pageTitle.addEventListener("input", resizeInput);
     resizeInput();
   }
+
+  // Initialize saved semesters on page load
+  onAuthStateChanged((user) => {
+    if (user && window.location.pathname.includes("index.html")) {
+      initializeSavedSemesters();
+    }
+  });
 });

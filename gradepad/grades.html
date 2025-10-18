@@ -191,21 +191,18 @@
     <button id="addTable">+ Course</button>
   </div>
 
-  <script type="module" src="jsScripts/firebase.js"></script>
   <script type="module" src="jsScripts/auth.js"></script>
   <script type="module" src="jsScripts/main.js"></script>
   <script type="module" src="jsScripts/db.js"></script>
 
     <script type="module">
-import { auth } from "./jsScripts/firebase.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { onAuthStateChanged } from "./jsScripts/auth.js";
 import { loadCourses } from "./jsScripts/db.js";
 import { createNewTable, attachEventListeners } from "./jsScripts/tableOps.js";
 
-
 const semesterId = new URLSearchParams(window.location.search).get("semesterId");
 
-onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(async (user) => {
   if (!user || !semesterId) return;
 
   try {

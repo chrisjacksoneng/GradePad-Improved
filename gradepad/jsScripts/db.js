@@ -1,221 +1,205 @@
-import { db } from "./firebase.js";
-import { auth } from "./firebase.js";
-import {
-  collection as firestoreCollection,
-  addDoc,
-  doc,
-  setDoc,
-  collection,
-  getDocs,
-  deleteDoc,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+// LocalStorage-based database functions
+// Replaces Firestore with browser localStorage
 
+// Helper function to get all data
+function getAllData() {
+  const data = localStorage.getItem('gradepad_data');
+  return data ? JSON.parse(data) : { semesters: [] };
+}
 
+// Helper function to save all data
+function saveAllData(data) {
+  localStorage.setItem('gradepad_data', JSON.stringify(data));
+}
 
-// --- Save Semester (with generated ID you can use later) ---
+// Helper function to generate unique IDs
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+// --- Save Semester ---
 export async function saveSemester({ name, startDate, endDate, semesterId = null }) {
-  const user = auth.currentUser;
-  if (!user) {
-    console.error("❌ No user is logged in.");
-    return null;
-  }
-
   try {
-    const semesterRef = semesterId
-      ? doc(db, "users", user.uid, "semesters", semesterId)
-      : doc(collection(db, "users", user.uid, "semesters"));
-
-    await setDoc(semesterRef, {
-      name,
-      startDate,
-      endDate,
-      createdAt: new Date()
-    });
-
-    console.log(semesterId ? "✏️ Semester updated:" : "✅ Semester saved:", semesterRef.id);
-    return semesterRef.id;
+    const data = getAllData();
+    
+    if (semesterId) {
+      // Update existing semester
+      const index = data.semesters.findIndex(s => s.id === semesterId);
+      if (index !== -1) {
+        data.semesters[index] = {
+          ...data.semesters[index],
+          name,
+          startDate,
+          endDate,
+          updatedAt: new Date().toISOString()
+        };
+      }
+    } else {
+      // Create new semester
+      const newSemester = {
+        id: generateId(),
+        name,
+        startDate,
+        endDate,
+        createdAt: new Date().toISOString(),
+        courses: []
+      };
+      data.semesters.push(newSemester);
+      semesterId = newSemester.id;
+    }
+    
+    saveAllData(data);
+    console.log(semesterId ? "✏️ Semester updated:" : "✅ Semester saved:", semesterId);
+    return semesterId;
   } catch (error) {
     console.error("❌ Failed to save/update semester:", error);
     return null;
   }
 }
 
-
-
 // --- Load Semesters ---
 export async function loadSemesters() {
-  const user = auth.currentUser;
-
-  if (!user) {
-    console.error("❌ No user is logged in.");
-    return [];
-  }
-
   try {
-    const querySnapshot = await getDocs(
-      firestoreCollection(db, "users", user.uid, "semesters")
-    );
-    const semesters = [];
-    querySnapshot.forEach((doc) => {
-      semesters.push({ id: doc.id, ...doc.data() });
-    });
-    console.log("✅ Loaded semesters:", semesters);
-    return semesters;
+    const data = getAllData();
+    console.log("✅ Loaded semesters:", data.semesters);
+    return data.semesters;
   } catch (error) {
     console.error("❌ Failed to load semesters:", error);
     return [];
   }
 }
 
+// --- Save Course ---
 export async function saveCourse({ semesterId, code, topic, units }) {
-  const user = auth.currentUser;
-  if (!user || !semesterId) return;
-
   try {
-    const courseRef = await addDoc(
-      collection(db, "users", user.uid, "semesters", semesterId, "courses"),
-      {
-        code,
-        topic,
-        units,
-        createdAt: new Date()
-      }
-    );
+    const data = getAllData();
+    const semester = data.semesters.find(s => s.id === semesterId);
+    
+    if (!semester) {
+      console.error("❌ Semester not found:", semesterId);
+      return null;
+    }
+    
+    const courseId = generateId();
+    const newCourse = {
+      id: courseId,
+      code,
+      topic,
+      units,
+      createdAt: new Date().toISOString(),
+      evaluations: []
+    };
+    
+    semester.courses.push(newCourse);
+    saveAllData(data);
+    
     console.log(`✅ Course "${code}" saved under semester ${semesterId}`);
-    return courseRef.id;
+    return courseId;
   } catch (err) {
     console.error("❌ Failed to save course:", err);
+    return null;
   }
 }
 
+// --- Save Evaluation ---
 export async function saveEvaluation({ semesterId, courseId, name, due, grade, weight, index }) {
   try {
-    const evaluationRef = collection(db, "users", auth.currentUser.uid, "semesters", semesterId, "courses", courseId, "evaluations");
-
-    const evaluationData = {
+    const data = getAllData();
+    const semester = data.semesters.find(s => s.id === semesterId);
+    if (!semester) return;
+    
+    const course = semester.courses.find(c => c.id === courseId);
+    if (!course) return;
+    
+    // Remove existing evaluation at this index if it exists
+    course.evaluations = course.evaluations.filter(e => e.index !== index);
+    
+    // Add new evaluation
+    const evaluation = {
+      id: generateId(),
       name: name ?? "",
       due: due ?? "",
       grade: grade ?? "",
       weight: weight ?? "",
-      index: index ?? 0, // ✅ fallback index
-      createdAt: serverTimestamp(),
+      index: index ?? 0,
+      createdAt: new Date().toISOString()
     };
-
-    await addDoc(evaluationRef, evaluationData);
-    console.log("✅ Evaluation saved:", evaluationData);
+    
+    course.evaluations.push(evaluation);
+    saveAllData(data);
+    
+    console.log("✅ Evaluation saved:", evaluation);
   } catch (error) {
     console.error("❌ Error saving evaluation:", error);
   }
 }
 
-
-
+// --- Load Courses ---
 export async function loadCourses(semesterId) {
-  const user = auth.currentUser;
-  if (!user || !semesterId) return [];
-
-  const courses = [];
-  const courseSnap = await getDocs(
-    collection(db, "users", user.uid, "semesters", semesterId, "courses")
-  );
-
-  for (const courseDoc of courseSnap.docs) {
-    const courseId = courseDoc.id;
-    const courseData = courseDoc.data();
-
-    const evalSnap = await getDocs(
-      collection(db, "users", user.uid, "semesters", semesterId, "courses", courseId, "evaluations")
-    );
-
-    const seen = new Set();
-    const evaluations = evalSnap.docs
-      .map((d) => d.data())
-      .filter((e) => {
-        const key = `${e.index}-${e.name}-${e.due}-${e.grade}-${e.weight}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      })
-      .sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
-
-
-    courses.push({
-      id: courseId,
-      ...courseData,
-      evaluations
-    });
+  try {
+    const data = getAllData();
+    const semester = data.semesters.find(s => s.id === semesterId);
+    
+    if (!semester) return [];
+    
+    return semester.courses.map(course => ({
+      id: course.id,
+      code: course.code,
+      topic: course.topic,
+      units: course.units,
+      evaluations: course.evaluations.sort((a, b) => (a.index ?? 0) - (b.index ?? 0))
+    }));
+  } catch (error) {
+    console.error("❌ Failed to load courses:", error);
+    return [];
   }
-
-  return courses;
 }
 
-
+// --- Delete Course ---
 export async function deleteCourse(semesterId, courseId) {
-  const user = auth.currentUser;
-  if (!user || !semesterId || !courseId) {
-    console.warn("⚠️ Missing user, semesterId, or courseId", { user, semesterId, courseId });
-    return;
-  }
-
-  console.log("🗑️ Attempting to delete course:", courseId, "from semester:", semesterId);
-
   try {
-    await deleteDoc(doc(db, "users", user.uid, "semesters", semesterId, "courses", courseId));
-    console.log("✅ Course deleted from Firestore:", courseId);
+    const data = getAllData();
+    const semester = data.semesters.find(s => s.id === semesterId);
+    
+    if (!semester) return;
+    
+    semester.courses = semester.courses.filter(c => c.id !== courseId);
+    saveAllData(data);
+    
+    console.log("✅ Course deleted:", courseId);
   } catch (err) {
     console.error("❌ Failed to delete course:", err);
   }
 }
 
-
+// --- Delete Semester ---
 export async function deleteSemester(semesterId) {
-  const user = auth.currentUser;
-  console.log("🧠 Deleting semester:", semesterId);
-
-  if (!user || !semesterId) {
-    console.warn("⚠️ Missing user or semesterId", { user, semesterId });
-    return;
-  }
-
   try {
-    const coursesRef = collection(db, "users", user.uid, "semesters", semesterId, "courses");
-    const courseSnapshot = await getDocs(coursesRef);
-
-    for (const courseDoc of courseSnapshot.docs) {
-      const courseId = courseDoc.id;
-
-      // Delete evaluations under the course
-      const evalsRef = collection(db, "users", user.uid, "semesters", semesterId, "courses", courseId, "evaluations");
-      const evalSnapshot = await getDocs(evalsRef);
-
-      for (const evalDoc of evalSnapshot.docs) {
-        await deleteDoc(evalDoc.ref);
-        console.log(`🗑️ Deleted evaluation ${evalDoc.id}`);
-      }
-
-      // Delete the course itself
-      await deleteDoc(courseDoc.ref);
-      console.log(`🗑️ Deleted course ${courseId}`);
-    }
-
-    // Finally delete the semester
-    await deleteDoc(doc(db, "users", user.uid, "semesters", semesterId));
-    console.log(`🗑️ Deleted semester ${semesterId} from Firestore`);
+    const data = getAllData();
+    data.semesters = data.semesters.filter(s => s.id !== semesterId);
+    saveAllData(data);
+    
+    console.log(`🗑️ Deleted semester ${semesterId}`);
   } catch (err) {
-    console.error("❌ Failed to fully delete semester and contents:", err);
+    console.error("❌ Failed to delete semester:", err);
   }
 }
 
-
+// --- Clear Evaluations ---
 export async function clearEvaluations(semesterId, courseId) {
-  const user = auth.currentUser;
-  if (!user) return;
-
-  const evalsRef = collection(db, "users", user.uid, "semesters", semesterId, "courses", courseId, "evaluations");
-  const snapshot = await getDocs(evalsRef);
-  const deletions = snapshot.docs.map((doc) => deleteDoc(doc.ref));
-  await Promise.all(deletions);
-  console.log("🧹 Cleared evaluations for course", courseId);
+  try {
+    const data = getAllData();
+    const semester = data.semesters.find(s => s.id === semesterId);
+    if (!semester) return;
+    
+    const course = semester.courses.find(c => c.id === courseId);
+    if (!course) return;
+    
+    course.evaluations = [];
+    saveAllData(data);
+    
+    console.log("🧹 Cleared evaluations for course", courseId);
+  } catch (error) {
+    console.error("❌ Failed to clear evaluations:", error);
+  }
 }
-

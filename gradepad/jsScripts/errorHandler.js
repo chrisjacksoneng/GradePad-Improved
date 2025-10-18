@@ -75,27 +75,18 @@ class ErrorHandler {
     }, 5000);
   }
 
-  // Firebase-specific error handling
-  handleFirebaseError(error, context = '') {
-    console.error(`🔥 Firebase Error ${context}:`, error);
+  // Database error handling (localStorage-based)
+  handleDatabaseError(error, context = '') {
+    console.error(`💾 Database Error ${context}:`, error);
     
     let userMessage = 'A database error occurred.';
     
-    switch (error.code) {
-      case 'permission-denied':
-        userMessage = 'You don\'t have permission to perform this action.';
-        break;
-      case 'unavailable':
-        userMessage = 'Database is temporarily unavailable. Please try again.';
-        break;
-      case 'unauthenticated':
-        userMessage = 'Please sign in to continue.';
-        break;
-      case 'network-request-failed':
-        userMessage = 'Network error. Please check your connection.';
-        break;
-      default:
-        userMessage = `Database error: ${error.message}`;
+    if (error.name === 'QuotaExceededError') {
+      userMessage = 'Storage quota exceeded. Please clear some data.';
+    } else if (error.name === 'SecurityError') {
+      userMessage = 'Storage access denied. Please check your browser settings.';
+    } else {
+      userMessage = `Database error: ${error.message}`;
     }
     
     this.showUserFriendlyError(userMessage);

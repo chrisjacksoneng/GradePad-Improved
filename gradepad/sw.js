@@ -6,7 +6,6 @@ const urlsToCache = [
   '/gradepad/grades.html',
   '/gradepad/styles/styles.css',
   '/gradepad/assets/images/gradepadlogo.png',
-  '/gradepad/jsScripts/firebase.js',
   '/gradepad/jsScripts/auth.js',
   '/gradepad/jsScripts/main.js',
   '/gradepad/jsScripts/db.js'

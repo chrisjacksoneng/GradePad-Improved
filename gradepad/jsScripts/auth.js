@@ -1,46 +1,53 @@
-import {
-  GoogleAuthProvider,
-  signInWithPopup,
-  signOut,
-  onAuthStateChanged,
-  setPersistence,
-  browserLocalPersistence
-} from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+// Simplified auth.js - no Firebase authentication needed
+// Just provides a mock user for local development
 
-import { auth } from "./firebase.js";
-import { initializeSavedSemesters } from "./main.js"; // ✅ Load semesters after login
+const mockUser = {
+  uid: 'local_user',
+  displayName: 'Local User',
+  email: 'local@gradepad.com'
+};
 
-const provider = new GoogleAuthProvider();
-
-// --- Google Sign-In ---
-export function loginWithGoogle() {
-  setPersistence(auth, browserLocalPersistence)
-    .then(() => signInWithPopup(auth, provider))
-    .then((result) => {
-      const user = result.user;
-      console.log("✅ Logged in as:", user.displayName, user.uid, user.email);
-
-      const loginBtn = document.getElementById("loginBtn");
-      const userDropdownContainer = document.getElementById("userDropdownContainer");
-      const userNameDisplay = document.getElementById("userNameDisplay");
-
-      if (loginBtn) loginBtn.classList.add("hidden");
-      if (userDropdownContainer && userNameDisplay) {
-        userNameDisplay.textContent = (user.displayName || "Account") + " ▼";
-        userDropdownContainer.classList.remove("hidden");
-      }
-
-      // ✅ Load saved semesters into the UI
-      if (window.location.pathname.includes("index.html")) {
-        initializeSavedSemesters();
-      }
-          })
-    .catch((error) => {
-      console.error("❌ Login error:", error.message);
-    });
+// Mock auth state - always logged in
+export function getCurrentUser() {
+  return mockUser;
 }
 
-// --- Auth & UI Events ---
+// Mock auth state changed callback
+export function onAuthStateChanged(callback) {
+  // Immediately call with mock user
+  callback(mockUser);
+  return () => {}; // Return unsubscribe function
+}
+
+// Mock login function
+export function loginWithGoogle() {
+  console.log("✅ Logged in as:", mockUser.displayName);
+  
+  const loginBtn = document.getElementById("loginBtn");
+  const userDropdownContainer = document.getElementById("userDropdownContainer");
+  const userNameDisplay = document.getElementById("userNameDisplay");
+
+  if (loginBtn) loginBtn.classList.add("hidden");
+  if (userDropdownContainer && userNameDisplay) {
+    userNameDisplay.textContent = (mockUser.displayName || "Account") + " ▼";
+    userDropdownContainer.classList.remove("hidden");
+  }
+}
+
+// Mock sign out function
+export function signOut() {
+  console.log("✅ Logged out");
+  
+  const loginBtn = document.getElementById("loginBtn");
+  const userDropdownContainer = document.getElementById("userDropdownContainer");
+  const dropdownMenu = document.getElementById("dropdownMenu");
+
+  if (userDropdownContainer) userDropdownContainer.classList.add("hidden");
+  if (dropdownMenu) dropdownMenu.classList.add("hidden");
+  if (loginBtn) loginBtn.classList.remove("hidden");
+}
+
+// Initialize auth state on page load
 document.addEventListener("DOMContentLoaded", () => {
   const loginBtn = document.getElementById("loginBtn");
   const userDropdownContainer = document.getElementById("userDropdownContainer");
@@ -48,39 +55,24 @@ document.addEventListener("DOMContentLoaded", () => {
   const dropdownMenu = document.getElementById("dropdownMenu");
   const signOutBtn = document.getElementById("signOutBtn");
 
+  // Auto-login on page load
+  if (loginBtn) loginBtn.classList.add("hidden");
+  if (userDropdownContainer && userNameDisplay) {
+    userNameDisplay.textContent = (mockUser.displayName || "Account") + " ▼";
+    userDropdownContainer.classList.remove("hidden");
+  }
+
+  // Login button handler
   if (loginBtn) loginBtn.addEventListener("click", loginWithGoogle);
+
+  // User dropdown toggle
   userNameDisplay?.addEventListener("click", () => dropdownMenu?.classList.toggle("hidden"));
 
+  // Sign out button handler
   signOutBtn?.addEventListener("click", () => {
-    signOut(auth)
-      .then(() => {
-        console.log("✅ Logged out");
-        userDropdownContainer.classList.add("hidden");
-        dropdownMenu.classList.add("hidden");
-        if (loginBtn) loginBtn.classList.remove("hidden");
-      })
-      .catch((error) => {
-        console.error("❌ Logout error:", error.message);
-      });
-  });
-
-  // --- Persist Auth State UI ---
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      console.log("✅ User still logged in:", user.displayName);
-      if (userNameDisplay) userNameDisplay.textContent = (user.displayName || "Account") + " ▼";
-      if (userDropdownContainer) userDropdownContainer.classList.remove("hidden");
-      if (loginBtn) loginBtn.style.display = "none";
-      if (window.location.pathname.includes("index.html")) {
-        initializeSavedSemesters();
-      }
-          } else {
-      console.log("❌ User not logged in");
-      if (loginBtn) loginBtn.style.display = "flex";
-      if (userDropdownContainer) userDropdownContainer.classList.add("hidden");
-    }
+    signOut();
   });
 });
 
-// Optional global
-window.loginWithGoogle = loginWithGoogle;
+// Export mock user for other modules
+export { mockUser };
