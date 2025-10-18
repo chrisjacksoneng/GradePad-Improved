@@ -2,13 +2,14 @@ import { defineConfig } from 'vite'
 import legacy from '@vitejs/plugin-legacy'
 
 export default defineConfig({
+  root: './gradepad',
   plugins: [
     legacy({
       targets: ['defaults', 'not IE 11']
     })
   ],
   build: {
-    outDir: 'dist',
+    outDir: '../dist',
     assetsDir: 'assets',
     sourcemap: true,
     rollupOptions: {
