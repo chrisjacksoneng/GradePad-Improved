@@ -18,12 +18,16 @@ body {
   background-color: var(--bg-color);
   background-image: none;
   color: var(--text-color);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
 }
 
 button {
   background-color: var(--button-bg-color);
   color: var(--text-color);
   border-color: var(--border-color);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
 }
 
 table th {
@@ -88,7 +92,6 @@ button:hover {
   color: var(--bg-color);
   cursor: pointer;
   box-shadow: 0 0 20px var(--accent-glow);
-  transform: translateY(-2px);
 }
 
 .courseHeader {
@@ -284,11 +287,16 @@ input::placeholder {
   font-size: 35px;
   color: var(--text-color);
   text-shadow: 0 0 10px var(--accent-glow);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  font-weight: 700;
 }
 
 h1 {
-  font-weight: 900;
+  font-weight: 700;
   color: var(--text-color);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
 }
 
 .gradeInput {
@@ -872,7 +880,6 @@ body {
 #welcome:hover {
   border-color: var(--accent-color);
   box-shadow: 0 0 30px var(--accent-glow);
-  transform: translateY(-5px);
 }
 
 #welcome h1 {
@@ -941,7 +948,6 @@ body {
 #addSemesterModal .close:hover {
   color: var(--accent-color);
   text-shadow: 0 0 10px var(--accent-glow);
-  transform: scale(1.2);
 }
 
 /* Modal content styling */
@@ -978,7 +984,6 @@ button#addSemester:hover {
   color: var(--bg-color);
   border-color: var(--accent-color);
   box-shadow: 0 0 30px var(--accent-glow);
-  transform: translateY(-5px) scale(1.05);
 }
 
 button#addSemester br {
@@ -1054,7 +1059,6 @@ button#addSemester br {
 .semester-card:hover {
   border-color: var(--accent-color);
   box-shadow: 0 0 30px var(--accent-glow);
-  transform: translateY(-5px) scale(1.02);
 }
 
 .semester-card .dropbtn {
@@ -1304,7 +1308,6 @@ button#addSemester br {
 #settingsModal .close:hover {
   color: var(--accent-color);
   text-shadow: 0 0 10px var(--accent-glow);
-  transform: scale(1.2);
 }
 
 #settingsModal h3 {
