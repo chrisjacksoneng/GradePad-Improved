@@ -1,11 +1,11 @@
 :root {
-  --bg-image: url("../assets/backgrounds/default_background.png");
-  --bg-color: #0a0a0a;
+  --bg-image: none;
+  --bg-color: #000000;
   --bg-secondary: #1a1a1a;
   --text-color: #ffffff;
   --text-secondary: #b0b0b0;
-  --accent-color: #ffd700;
-  --accent-glow: rgba(255, 215, 0, 0.3);
+  --accent-color: #ffffff;
+  --accent-glow: rgba(255, 255, 255, 0.3);
   --button-bg-color: #1a1a1a;
   --table-header-bg: #1a1a1a;
   --table-row-alt-bg: #151515;
@@ -753,8 +753,8 @@ textarea {
 }
 
 .tooltip-buttons button:hover {
-  background-color: #909090; /* Yellow background on hover */
-  border-color: #909090; /* Yellow border on hover */
+  background-color: #ffffff; /* White background on hover */
+  border-color: #ffffff; /* White border on hover */
   color: black; /* Keep text black on hover */
 }
 
