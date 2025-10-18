@@ -88,8 +88,6 @@ button {
 }
 
 button:hover {
-  background-color: var(--accent-color);
-  color: var(--bg-color);
   cursor: pointer;
   box-shadow: 0 0 20px var(--accent-glow);
 }
@@ -1105,8 +1103,6 @@ button#addSemester br {
 
 .dropbtn:hover,
 .dropbtn.active {
-  background-color: var(--accent-color) !important;
-  color: var(--bg-color);
   box-shadow: 0 0 15px var(--accent-glow);
 }
 
@@ -1412,8 +1408,7 @@ th:nth-child(3) {
 }
 
 .dropdown-menu button:hover {
-  background-color: var(--accent-color);
-  color: var(--bg-color);
+  box-shadow: 0 0 15px var(--accent-glow);
 }
 
 .dropdown-menu.hidden {

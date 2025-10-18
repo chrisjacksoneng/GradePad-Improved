@@ -39,8 +39,8 @@ class PWAManager {
       e.preventDefault();
       deferredPrompt = e;
       
-      // Show install button
-      this.showInstallButton(deferredPrompt);
+      // Install button disabled
+      // this.showInstallButton(deferredPrompt);
     });
 
     window.addEventListener('appinstalled', () => {
