@@ -6,6 +6,11 @@
 
 body {
   background-color: #000000;
+  background-image: url("../assets/images/roughbgGP.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   color: #ffffff;
   font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     sans-serif;
