@@ -52,6 +52,19 @@ body {
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
 
+.nav-line {
+  width: 80%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  margin: 0 auto;
+  margin-top: 10px;
+}
+
 button {
   background-color: var(--button-bg-color);
   color: var(--text-color);
