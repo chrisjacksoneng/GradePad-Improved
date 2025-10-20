@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap">
+    <link rel="stylesheet" href="styles/styles.css">
+    <link rel="icon" type="image/png" href="assets/images/gradepadlogo.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2196F3">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="description" content="Track your grades and calculate GPA with GradePad">
+    <title>GradePad - Grade Tracking Made Simple</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <nav class="top-nav">
+        <a href="#about">About</a>
+        <a href="#help">Help</a>
+    </nav>
+    <div class="nav-line"></div>
+    <div id="welcome">
+        <h1>
+            <span class="gradepad-text">GradePad</span>
+        </h1>
+        <p class="slogan">Track. Calculate. Excel.</p>
+    </div>
+
+    <!-- Semester Container -->
+    <div class="semester-container">
+        <!-- Semesters will be added here -->
+        
+        <!-- Add Semester Button (will stay on the right) -->
+        <button id="addSemester">+ <br>New</br> Semester</button>
+    </div>
+    
+<!-- Semester Modal -->
+<div id="addSemesterModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>Add New Semester</h3>
+        <div class="form-group">
+            <label for="semesterName">Semester Name:</label>
+            <input type="text" id="semesterName" placeholder="e.g., Fall 2023">
+        </div>
+        <div class="form-group">
+            <label for="startDate">Start Date:</label>
+            <input type="date" id="startDate">
+        </div>
+        <div class="form-group">
+            <label for="endDate">End Date:</label>
+            <input type="date" id="endDate">
+        </div>
+        <button id="saveSemester">Save Semester</button>
+    </div>
+</div>
+
+<script type="module" src="jsScripts/errorHandler.js"></script>
+<script type="module" src="jsScripts/auth.js"></script>
+<script type="module" src="jsScripts/main.js"></script>
+<script type="module" src="jsScripts/db.js"></script>
+<script type="module" src="jsScripts/pwa.js"></script>
+<script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+</script>
+
+</body>
+</html>
