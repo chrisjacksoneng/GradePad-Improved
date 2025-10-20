@@ -16,7 +16,8 @@ export default defineConfig({
       input: {
         main: './gradepad/index.html',
         grades: './gradepad/grades.html',
-        landing: './gradepad/landing.html'
+        app: './gradepad/app.html',
+        features: './gradepad/features.html'
       }
     }
   },
