@@ -14,51 +14,6 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
-    <div class="top">
-        <div class="topBar">
-            <div id="mySidenav" class="sidenav">
-                <a href="index.html">Home Page</a>
-                <a href="#">My Profile</a>
-                <a href="#">Settings</a>
-                <a href="#">Report an Issue</a>
-            </div>
-            <span id="menuIcon" style="font-size:30px; cursor:pointer" onclick="toggleNav()">&#9776;</span> 
-                
-            <a href="index.html" style="text-decoration: none; display: flex; align-items: center;">
-                <i data-lucide="calculator" style="width: 40px; height: 40px; color: white;"></i>
-            </a>
-            <h1 class="gradePadWriting">GradePad</h1>
-            <div class="rightControls">
-                <div class="googleAuth">
-                    <button id="loginBtn" style="display: flex; align-items: center; gap: 8px;">
-                        <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo" style="width:18px;">
-                        Signin with Google
-                      </button>
-                    <div id="userDropdownContainer" class="user-dropdown hidden">
-                    <button id="userNameDisplay"></button>
-                    <div id="dropdownMenu" class="dropdown-menu hidden">
-                      <button id="signOutBtn">Sign Out</button>
-                    </div>
-                  </div>
-                </div>
-                <button id="settingsIcon">⛭</button>
-              </div>
-        </div>
-    </div>
-    
-    <!-- Settings Modal - moved outside topBar to prevent clipping -->
-    <div id="settingsModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h3>GradePad Settings</h3>   
-            <p>Welcome to GradePad!</p>
-            <p>Your personal grade tracking application.</p>
-            <hr>
-            <p><strong>Version:</strong> 1.0.0</p>
-            <p><strong>Status:</strong> Ready to use</p>
-                         
-        </div>
-    </div>
     <div id="welcome">
         <h1>
             <span class="welcome-text">Welcome to</span>
