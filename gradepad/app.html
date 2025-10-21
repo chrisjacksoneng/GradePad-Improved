@@ -39,6 +39,69 @@
             font-size: 2rem !important;
             color: #ffffff !important;
         }
+        
+        /* Semester Management Header */
+        .semester-header {
+            padding: 30px 40px 40px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .semester-header .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .page-title {
+            font-family: "Playfair Display", serif;
+            font-style: italic;
+            font-size: 3rem;
+            font-weight: 400;
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+        
+        .page-subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .header-actions {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .btn-primary {
+            background-color: #ffffff;
+            color: #000000;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: "Poppins", sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-primary:hover {
+            background-color: transparent;
+            color: #ffffff;
+            border: 1px solid #ffffff;
+        }
+        
+        .btn-primary i {
+            width: 20px;
+            height: 20px;
+        }
     </style>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><rect x=%224%22 y=%222%22 width=%2216%22 height=%2220%22 rx=%222%22/><path d=%22M8 6h8%22/><circle cx=%228%22 cy=%2210%22 r=%221%22/><circle cx=%2210%22 cy=%2210%22 r=%221%22/><circle cx=%2212%22 cy=%2210%22 r=%221%22/><circle cx=%228%22 cy=%2213%22 r=%221%22/><circle cx=%2210%22 cy=%2213%22 r=%221%22/><circle cx=%2212%22 cy=%2213%22 r=%221%22/><circle cx=%228%22 cy=%2216%22 r=%221%22/><circle cx=%2210%22 cy=%2216%22 r=%221%22/><circle cx=%2212%22 cy=%2216%22 r=%221%22/><rect x=%2214%22 y=%2210%22 width=%224%22 height=%227%22 rx=%221%22/></svg>">
     <link rel="manifest" href="manifest.json">
@@ -65,12 +128,19 @@
             <a href="app.html" class="cta-button">→ Get started</a>
         </div>
     </header>
-    <div id="welcome">
-        <h1>
-            <span class="gradepad-text">GradePad</span>
-        </h1>
-        <p class="slogan">Track. Calculate. Excel.</p>
-    </div>
+    <!-- Semester Management Header -->
+    <section class="semester-header">
+        <div class="container">
+            <h1 class="page-title">Semester Management</h1>
+            <p class="page-subtitle">Track your academic progress across all semesters and courses</p>
+            <div class="header-actions">
+                <button class="btn-primary" onclick="addNewSemester()">
+                    <i data-lucide="plus"></i>
+                    Add New Semester
+                </button>
+            </div>
+        </div>
+    </section>
 
     <!-- Semester Container -->
     <div class="semester-container">
@@ -109,6 +179,12 @@
 <script>
     // Initialize Lucide icons
     lucide.createIcons();
+
+    // Add New Semester Function
+    function addNewSemester() {
+        alert('Add New Semester functionality will be implemented here!');
+        // This will eventually open a modal or form to add a new semester
+    }
 </script>
 
 </body>
