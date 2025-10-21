@@ -95,6 +95,97 @@
       transition: all 0.3s ease !important;
       text-transform: uppercase !important;
       letter-spacing: 0.5px !important;
+      display: inline-block !important;
+      visibility: visible !important;
+    }
+    
+    /* Ensure syllabus button is visible */
+    .syllabusButton {
+      display: inline-block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      position: relative !important;
+      z-index: 10 !important;
+    }
+    
+    /* Style the parse syllabus modal */
+    .syllabusModal.modal {
+      background-color: rgba(0, 0, 0, 0.8) !important;
+      backdrop-filter: blur(5px) !important;
+    }
+    
+    .syllabusModal .modal-content {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+      border-radius: 16px !important;
+      padding: 30px !important;
+      max-width: 600px !important;
+      width: 90% !important;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    .syllabusModal .close {
+      color: #ffffff !important;
+      font-size: 24px !important;
+      font-weight: bold !important;
+      background: rgba(255, 255, 255, 0.1) !important;
+      border-radius: 50% !important;
+      width: 40px !important;
+      height: 40px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      cursor: pointer !important;
+      transition: all 0.3s ease !important;
+    }
+    
+    .syllabusModal .close:hover {
+      background: rgba(255, 255, 255, 0.2) !important;
+      transform: scale(1.1) !important;
+    }
+    
+    .syllabusModal textarea {
+      background: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      border-radius: 8px !important;
+      padding: 15px !important;
+      color: #ffffff !important;
+      font-size: 14px !important;
+      line-height: 1.5 !important;
+      resize: vertical !important;
+      min-height: 200px !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    
+    .syllabusModal textarea::placeholder {
+      color: rgba(255, 255, 255, 0.5) !important;
+    }
+    
+    .syllabusModal .parseSyllabusButton {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+      color: #ffffff !important;
+      border: none !important;
+      border-radius: 8px !important;
+      padding: 12px 24px !important;
+      font-size: 14px !important;
+      font-weight: 600 !important;
+      cursor: pointer !important;
+      transition: all 0.3s ease !important;
+      margin-top: 15px !important;
+    }
+    
+    .syllabusModal .parseSyllabusButton:hover {
+      background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%) !important;
+      transform: translateY(-2px) !important;
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3) !important;
+    }
+    
+    .syllabusModal .syllabusNote {
+      color: rgba(255, 255, 255, 0.7) !important;
+      font-size: 12px !important;
+      margin-top: 10px !important;
+      font-style: italic !important;
     }
     
     .deleteButton:hover, .syllabusButton:hover {
@@ -135,6 +226,33 @@
     select option, .courseUnits option, .unitsDropdown option {
       color: #000000 !important;
       background-color: transparent !important;
+    }
+    
+    /* Remove dots/periods from mark column inputs */
+    input[type="number"], input.markInput, td input, 
+    input[type="text"], input[placeholder*="Mark"], 
+    td:nth-child(3) input {
+      appearance: none !important;
+      -moz-appearance: textfield !important;
+      background-image: none !important;
+      background-position: none !important;
+      background-repeat: no-repeat !important;
+      background-size: 0 !important;
+      position: relative !important;
+    }
+    
+    /* Remove any pseudo-elements that might be creating dots */
+    input::after, input::before {
+      display: none !important;
+      content: none !important;
+    }
+    
+    /* Remove spinner arrows from number inputs */
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none !important;
+      margin: 0 !important;
+      display: none !important;
     }
     
     .brand-name {
