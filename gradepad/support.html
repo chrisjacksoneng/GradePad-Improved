@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap">
+    <link rel="stylesheet" href="styles/features.css">
+    <link rel="icon" type="image/png" href="assets/images/gradepadlogo.png">
+    <title>Support - GradePad</title>
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <header class="top-header">
+        <a href="index.html" class="header-left">
+            <i data-lucide="calculator" style="width: 32px; height: 32px; color: white; margin-right: 10px;"></i>
+            <span class="brand-name">GradePad</span>
+        </a>
+        <nav class="header-nav">
+            <a href="features.html">Features</a>
+            <a href="about.html">About</a>
+            <a href="support.html">Support</a>
+        </nav>
+        <div class="header-right">
+            <a href="app.html" class="login-link">Log in</a>
+            <a href="app.html" class="cta-button">→ Get started</a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <h1 class="hero-title">How can we <span class="gradient-text">help you?</span></h1>
+        <p class="hero-subtitle">Find answers to your questions and get the support you need to succeed with GradePad</p>
+    </section>
+
+    <!-- Support Content -->
+    <main class="about-content">
+        <!-- FAQ Section -->
+        <div class="content-section">
+            <h2>Frequently Asked Questions</h2>
+            
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <h3>How do I get started with GradePad?</h3>
+                    <i data-lucide="chevron-down" class="faq-icon"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>Simply click "Get Started" and create your account. You can then add your courses and start tracking your grades immediately. No setup required!</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <h3>Is my data secure?</h3>
+                    <i data-lucide="chevron-down" class="faq-icon"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>Yes! Your academic data is encrypted and stored securely. We never share your information with third parties and follow industry-leading security practices.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <h3>Can I use GradePad on my phone?</h3>
+                    <i data-lucide="chevron-down" class="faq-icon"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>Absolutely! GradePad is fully responsive and works perfectly on desktop, tablet, and mobile devices. Access your grades anywhere, anytime.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <h3>How do I calculate my GPA?</h3>
+                    <i data-lucide="chevron-down" class="faq-icon"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>GradePad automatically calculates your GPA as you add grades. You can also use our built-in GPA calculator to see different scenarios and track your progress.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <h3>Can I export my grade data?</h3>
+                    <i data-lucide="chevron-down" class="faq-icon"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>Yes! You can export your grade data in PDF or CSV formats for backup, sharing with advisors, or analyzing in external tools.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <h3>What grading systems are supported?</h3>
+                    <i data-lucide="chevron-down" class="faq-icon"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>GradePad supports letter grades (A-F), percentage scales, and custom grading systems. You can customize the grading scale to match your institution's requirements.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Getting Started Section -->
+        <div class="content-section">
+            <h2>Getting Started Guide</h2>
+            <p>New to GradePad? Follow these simple steps to set up your account and start tracking your grades:</p>
+            
+            <div class="guide-step">
+                <h3>1. Create Your Account</h3>
+                <p>Sign up with your email address and create a secure password. No personal information required beyond what you're comfortable sharing.</p>
+            </div>
+
+            <div class="guide-step">
+                <h3>2. Add Your Courses</h3>
+                <p>Click "Add Course" and enter your course name, instructor, and any other details you'd like to track.</p>
+            </div>
+
+            <div class="guide-step">
+                <h3>3. Set Up Assignments</h3>
+                <p>Add your assignments, tests, and projects with their due dates and point values. GradePad will help you stay organized.</p>
+            </div>
+
+            <div class="guide-step">
+                <h3>4. Track Your Progress</h3>
+                <p>As you receive grades, enter them into GradePad. Watch your progress in real-time with our smart analytics.</p>
+            </div>
+        </div>
+
+        <!-- Contact Form Section -->
+        <div class="content-section">
+            <h2>Contact Us</h2>
+            <p>Still need help? Send us a message and we'll get back to you within 24 hours.</p>
+            
+            <form class="contact-form" onsubmit="submitContactForm(event)">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="subject">Subject</label>
+                    <select id="subject" name="subject" required>
+                        <option value="">Select a topic</option>
+                        <option value="general">General Question</option>
+                        <option value="technical">Technical Issue</option>
+                        <option value="billing">Billing Question</option>
+                        <option value="feature">Feature Request</option>
+                        <option value="bug">Bug Report</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Message</label>
+                    <textarea id="message" name="message" rows="6" placeholder="Please describe your question or issue in detail..." required></textarea>
+                </div>
+
+                <button type="submit" class="submit-button">Send Message</button>
+            </form>
+
+            <div class="contact-info">
+                <h3>Other Ways to Reach Us</h3>
+                <div class="contact-methods">
+                    <div class="contact-method">
+                        <h4>Email Support</h4>
+                        <a href="mailto:support@gradepad.com">support@gradepad.com</a>
+                    </div>
+                    <div class="contact-method">
+                        <h4>Feature Requests</h4>
+                        <a href="mailto:feedback@gradepad.com">feedback@gradepad.com</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <h2>Ready to start tracking your grades?</h2>
+        <a href="app.html" class="cta-button-large">Get started with GradePad →</a>
+    </section>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // FAQ Toggle Function
+        function toggleFAQ(element) {
+            const answer = element.nextElementSibling;
+            const icon = element.querySelector('.faq-icon');
+            
+            if (answer.style.display === 'block') {
+                answer.style.display = 'none';
+                icon.style.transform = 'rotate(0deg)';
+                element.classList.remove('active');
+            } else {
+                // Close all other FAQs
+                document.querySelectorAll('.faq-answer').forEach(faq => {
+                    faq.style.display = 'none';
+                });
+                document.querySelectorAll('.faq-icon').forEach(icon => {
+                    icon.style.transform = 'rotate(0deg)';
+                });
+                document.querySelectorAll('.faq-question').forEach(question => {
+                    question.classList.remove('active');
+                });
+                
+                // Open clicked FAQ
+                answer.style.display = 'block';
+                icon.style.transform = 'rotate(180deg)';
+                element.classList.add('active');
+            }
+        }
+
+        // Contact Form Submission
+        function submitContactForm(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            // Get form values
+            const name = formData.get('name');
+            const email = formData.get('email');
+            const subject = formData.get('subject');
+            const message = formData.get('message');
+            
+            // Create mailto link
+            const mailtoLink = `mailto:support@gradepad.com?subject=${encodeURIComponent(subject + ' - ' + name)}&body=${encodeURIComponent('Name: ' + name + '\nEmail: ' + email + '\n\nMessage:\n' + message)}`;
+            
+            // Open email client
+            window.location.href = mailtoLink;
+            
+            // Show success message
+            alert('Your email client should open with your message. If it doesn\'t, please email us directly at support@gradepad.com');
+        }
+    </script>
+</body>
+</html>
