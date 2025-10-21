@@ -114,9 +114,27 @@
       color: #ffffff !important;
     }
     
-    /* Change placeholder text to white as well */
-    .courseCode::placeholder, .courseTopic::placeholder {
-      color: rgba(255, 255, 255, 0.7) !important;
+    /* Ensure input text is white with higher specificity */
+    input.courseCode, input.courseTopic {
+      color: #ffffff !important;
+    }
+    
+    /* Override any existing color styles */
+    .courseCode input, .courseTopic input,
+    .titleBox input.courseCode, .titleBox input.courseTopic {
+      color: #ffffff !important;
+    }
+    
+    /* Fix course units dropdown text color */
+    select, .courseUnits, .unitsDropdown {
+      color: #ffffff !important;
+      background-color: #333333 !important;
+    }
+    
+    /* Fix dropdown options */
+    select option, .courseUnits option, .unitsDropdown option {
+      color: #ffffff !important;
+      background-color: #333333 !important;
     }
     
     .brand-name {
