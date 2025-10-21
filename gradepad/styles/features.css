@@ -185,6 +185,33 @@ body {
   color: rgba(255, 255, 255, 0.7);
 }
 
+/* About Content */
+.about-content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px;
+}
+
+.content-section {
+  margin-bottom: 50px;
+}
+
+.content-section h2 {
+  font-family: "Playfair Display", serif;
+  font-style: italic;
+  font-size: 2rem;
+  font-weight: 400;
+  margin-bottom: 20px;
+  color: #ffffff;
+}
+
+.content-section p {
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 15px;
+}
+
 /* CTA Section */
 .cta-section {
   text-align: center;
