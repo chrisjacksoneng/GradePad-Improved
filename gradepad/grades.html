@@ -57,9 +57,19 @@
       background-color: #ffffff !important;
     }
     
+    /* Add lines between table rows (excluding course header) */
+    tr:not(:first-child):not(:last-child) td {
+      border-bottom: 1px solid #e0e0e0 !important;
+    }
+    
+    /* Add border to second-to-last row if it's not the course header */
+    tr:nth-last-child(2) td {
+      border-bottom: 1px solid #e0e0e0 !important;
+    }
+    
     /* Align table with calculator logo */
     .table-container {
-      margin-left: 60px !important;
+      margin-left: 20px !important;
     }
     
     .header-nav a, .login-link, .cta-button {
@@ -87,10 +97,10 @@
     </a>
     <div class="header-center">
       <span id="navGpa" class="gpa-display">GPA: 0.00</span>
-    </div>
+            </div>
     <div class="header-right">
       <a href="app.html" class="login-link">Semester Dashboard</a>
-    </div>
+          </div>
   </header>
       <div id="settingsModal" class="modal">
         <div class="modal-content">
