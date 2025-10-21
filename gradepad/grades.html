@@ -118,8 +118,8 @@
       background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
       border-radius: 16px !important;
       padding: 30px !important;
-      max-width: 600px !important;
-      width: 90% !important;
+      max-width: 800px !important;
+      width: 95% !important;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
       border: 1px solid rgba(255, 255, 255, 0.1) !important;
     }
@@ -162,29 +162,42 @@
       color: rgba(255, 255, 255, 0.5) !important;
     }
     
+    .syllabusModal .modal-content {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 15px !important;
+    }
+    
+    .syllabusModal .modal-footer {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      margin-top: 15px !important;
+    }
+    
     .syllabusModal .parseSyllabusButton {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-      color: #ffffff !important;
-      border: none !important;
+      background: #ffffff !important;
+      color: #000000 !important;
+      border: 1px solid #e0e0e0 !important;
       border-radius: 8px !important;
       padding: 12px 24px !important;
       font-size: 14px !important;
       font-weight: 600 !important;
       cursor: pointer !important;
       transition: all 0.3s ease !important;
-      margin-top: 15px !important;
+      margin: 0 !important;
     }
     
     .syllabusModal .parseSyllabusButton:hover {
-      background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%) !important;
+      background: #f5f5f5 !important;
       transform: translateY(-2px) !important;
-      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3) !important;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
     }
     
     .syllabusModal .syllabusNote {
       color: rgba(255, 255, 255, 0.7) !important;
       font-size: 12px !important;
-      margin-top: 10px !important;
+      margin: 0 !important;
       font-style: italic !important;
     }
     
@@ -315,8 +328,10 @@
                   <div class="modal-content" class="syllabusmodalcontent">
                     <span class="close">&times;</span>
                     <textarea class="syllabusTextbox" placeholder="Paste the course syllabus here..."></textarea>
+                    <div class="modal-footer">
+                      <p class="syllabusNote">Note: Syllabus parsing is not always 100% accurate. Please double check all values match the syllabus.</p>
                     <button class="parseSyllabusButton">Parse Syllabus</button>
-                    <p class="syllabusNote">Note: Syllabus parsing is not always 100% accurate. Please double check all values match the syllabus.</p>
+                    </div>
                   </div>
                 </div>
               </div>
