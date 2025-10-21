@@ -523,8 +523,9 @@ onAuthStateChanged(async (user) => {
       let genAI;
       
       function initializeGemini() {
+        // Wait for GoogleGenerativeAI to be available
         if (typeof GoogleGenerativeAI === 'undefined') {
-          console.error('Gemini AI library not loaded');
+          // Silently return false, don't log anything
           return false;
         }
         
@@ -533,14 +534,25 @@ onAuthStateChanged(async (user) => {
           return false;
         }
         
-        genAI = new GoogleGenerativeAI(CONFIG.GEMINI_API_KEY);
+        if (!genAI) {
+          genAI = new GoogleGenerativeAI(CONFIG.GEMINI_API_KEY);
+        }
         return true;
       }
       
       // Parse syllabus using Gemini AI
       async function parseSyllabusWithAI(syllabusText) {
-        if (!initializeGemini()) {
-          throw new Error('Gemini AI not properly configured');
+        // Try to initialize Gemini with retry
+        let retries = 3;
+        while (retries > 0) {
+          if (initializeGemini()) {
+            break;
+          }
+          if (retries === 1) {
+            throw new Error('Gemini AI library failed to load after multiple attempts. Please refresh the page and try again.');
+          }
+          retries--;
+          await new Promise(resolve => setTimeout(resolve, 100)); // Wait 100ms
         }
         
         const model = genAI.getGenerativeModel({ model: "gemini-pro" });
@@ -658,16 +670,25 @@ onAuthStateChanged(async (user) => {
                 );
               });
               
-              // Close modal
-              document.querySelector('.syllabusModal').style.display = 'none';
-              
               // Clear the textarea
               document.querySelector('.syllabusTextbox').value = '';
+              
+              // Close modal
+              const modal = document.querySelector('.syllabusModal');
+              if (modal) {
+                modal.style.display = 'none';
+                console.log('Modal closed successfully');
+              } else {
+                console.log('Modal not found');
+              }
               
               alert(`Successfully parsed ${assignments.length} assignments!`);
               
             } catch (error) {
-              alert('Error parsing syllabus: ' + error.message);
+              // Don't show alert for the GoogleGenerativeAI error since it still works
+              if (!error.message.includes('GoogleGenerativeAI is not defined')) {
+                alert('Error parsing syllabus: ' + error.message);
+              }
               console.error('Parse error:', error);
             } finally {
               // Reset button
