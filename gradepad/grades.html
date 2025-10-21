@@ -628,14 +628,14 @@ onAuthStateChanged(async (user) => {
         
         // Insert the new row
         if (insertBeforeRow) {
-          table.insertBefore(newRow, insertBeforeRow);
+          insertBeforeRow.parentNode.insertBefore(newRow, insertBeforeRow);
         } else {
           table.appendChild(newRow);
         }
         
         // Reinitialize event listeners for the new row
         if (typeof attachEventListeners === 'function') {
-          attachEventListeners(table);
+          attachEventListeners(table.closest('.table-wrapper'));
         }
       }
       
@@ -703,11 +703,87 @@ onAuthStateChanged(async (user) => {
               }, 100);
               
             } catch (error) {
-              // Don't show alert for the GoogleGenerativeAI error since it still works
-              if (!error.message.includes('GoogleGenerativeAI is not defined')) {
-                alert('Error parsing syllabus: ' + error.message);
+              console.log('AI parsing failed, falling back to local parsing:', error.message);
+              
+              // Fall back to local parsing
+              try {
+                const lines = syllabusText.trim().split("\n");
+                const rows = [];
+
+                let courseCode = "";
+                let courseTitle = "";
+                const saveLocalCopyIndex = lines.findIndex((line) => line.includes("Save a Local Copy"));
+                if (saveLocalCopyIndex !== -1) {
+                  courseCode = lines[saveLocalCopyIndex + 1] || "";
+                  courseTitle = lines[saveLocalCopyIndex + 3] || "";
+                }
+
+                const courseCodeInput = document.querySelector(".courseCode");
+                const courseTitleInput = document.querySelector(".courseTopic");
+
+                if (courseCodeInput) courseCodeInput.value = courseCode;
+                if (courseTitleInput) courseTitleInput.value = courseTitle;
+
+                for (const line of lines) {
+                  const parts = line.trim().split(/\s{2,}|\t+/);
+                  if (parts.length >= 2) {
+                    const name = parts[0];
+                    const weight = parseFloat(parts[1]);
+                    if (!isNaN(weight)) {
+                      rows.push({ name, weight });
+                    }
+                  }
+                }
+
+                const table = document.querySelector('table');
+                if (table) {
+                  const existingRows = table.querySelectorAll("tr:not(:first-child, .columnTitles, #finalGradeRow)");
+                  existingRows.forEach(row => row.remove());
+
+                  rows.forEach(({ name, weight }) => {
+                    addAssignmentRow(name, weight, 'TBD');
+                  });
+                }
+                
+                console.log('Local parsing completed successfully');
+                
+                // Clear the textarea and close modal
+                document.querySelector('.syllabusTextbox').value = '';
+                
+                // Close modal - try multiple selectors
+                let modal = document.querySelector('.syllabusModal');
+                if (!modal) {
+                  modal = document.querySelector('.modal');
+                }
+                if (!modal) {
+                  modal = document.querySelector('[class*="modal"]');
+                }
+                
+                if (modal) {
+                  modal.style.display = 'none';
+                  modal.classList.remove('show');
+                  console.log('Modal closed successfully');
+                } else {
+                  console.log('Modal not found, trying to hide by class');
+                  // Try hiding all elements with modal class
+                  const modals = document.querySelectorAll('.modal');
+                  modals.forEach(m => m.style.display = 'none');
+                }
+                
+                // Force close modal with additional methods
+                setTimeout(() => {
+                  const allModals = document.querySelectorAll('.modal, .syllabusModal');
+                  allModals.forEach(m => {
+                    m.style.display = 'none';
+                    m.style.visibility = 'hidden';
+                    m.classList.remove('show', 'active');
+                  });
+                }, 100);
+                
+              } catch (localError) {
+                console.error('Both AI and local parsing failed:', localError);
+                alert('Error parsing syllabus: ' + localError.message);
               }
-              console.error('Parse error:', error);
             } finally {
               // Reset button
               parseButton.textContent = 'Parse Syllabus';
