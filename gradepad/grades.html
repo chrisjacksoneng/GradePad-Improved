@@ -278,6 +278,8 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><rect x=%224%22 y=%222%22 width=%2216%22 height=%2220%22 rx=%222%22/><path d=%22M8 6h8%22/><circle cx=%228%22 cy=%2210%22 r=%221%22/><circle cx=%2210%22 cy=%2210%22 r=%221%22/><circle cx=%2212%22 cy=%2210%22 r=%221%22/><circle cx=%228%22 cy=%2213%22 r=%221%22/><circle cx=%2210%22 cy=%2213%22 r=%221%22/><circle cx=%2212%22 cy=%2213%22 r=%221%22/><circle cx=%228%22 cy=%2216%22 r=%221%22/><circle cx=%2210%22 cy=%2216%22 r=%221%22/><circle cx=%2212%22 cy=%2216%22 r=%221%22/><rect x=%2214%22 y=%2210%22 width=%224%22 height=%227%22 rx=%221%22/></svg>">
   <title>GradePad</title>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/@google/generative-ai@0.2.1/dist/index.js"></script>
+  <script src="config.js"></script>
 </head>
 <body>
   <!-- Top Navigation Bar -->
@@ -513,6 +515,168 @@ onAuthStateChanged(async (user) => {
       if (gpaElement) {
         observer.observe(gpaElement, { childList: true, characterData: true, subtree: true });
       }
+    </script>
+    
+    <!-- Gemini AI Integration -->
+    <script>
+      // Initialize Gemini AI
+      let genAI;
+      
+      function initializeGemini() {
+        if (typeof GoogleGenerativeAI === 'undefined') {
+          console.error('Gemini AI library not loaded');
+          return false;
+        }
+        
+        if (!CONFIG || !CONFIG.GEMINI_API_KEY || CONFIG.GEMINI_API_KEY === "YOUR_API_KEY_HERE") {
+          console.error('Please set your Gemini API key in config.js');
+          return false;
+        }
+        
+        genAI = new GoogleGenerativeAI(CONFIG.GEMINI_API_KEY);
+        return true;
+      }
+      
+      // Parse syllabus using Gemini AI
+      async function parseSyllabusWithAI(syllabusText) {
+        if (!initializeGemini()) {
+          throw new Error('Gemini AI not properly configured');
+        }
+        
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        
+        const prompt = `
+        Parse this course syllabus and extract assignment information in JSON format.
+        
+        Syllabus text:
+        ${syllabusText}
+        
+        Return ONLY a JSON array with this exact structure:
+        [
+          {
+            "name": "Assignment Name",
+            "weight": 25,
+            "dueDate": "2024-01-15"
+          }
+        ]
+        
+        Rules:
+        - Extract all assignments, exams, projects, etc.
+        - Convert percentages to numbers (e.g., "25%" becomes 25)
+        - Use YYYY-MM-DD format for dates
+        - If no date is specified, use "TBD"
+        - Return only valid JSON, no other text
+        `;
+        
+        try {
+          const result = await model.generateContent(prompt);
+          const response = await result.response;
+          const text = response.text();
+          
+          // Clean up the response (remove any markdown formatting)
+          const cleanedText = text.replace(/```json\n?|\n?```/g, '').trim();
+          
+          return JSON.parse(cleanedText);
+        } catch (error) {
+          console.error('Error parsing syllabus:', error);
+          throw new Error('Failed to parse syllabus: ' + error.message);
+        }
+      }
+      
+      // Add assignment row to table
+      function addAssignmentRow(name, weight, dueDate) {
+        // Find the table and add a new row
+        const table = document.querySelector('table');
+        if (!table) return;
+        
+        // Find the last row before the final grade row
+        const rows = table.querySelectorAll('tr');
+        let insertBeforeRow = null;
+        
+        // Look for existing assignment rows (not header, not final grade)
+        for (let i = rows.length - 1; i >= 0; i--) {
+          const row = rows[i];
+          if (row.id === 'finalGradeRow') {
+            insertBeforeRow = row;
+            break;
+          }
+        }
+        
+        // Create new row
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+          <td><input type="text" placeholder="Evaluation" value="${name}"></td>
+          <td><input type="text" class="dueInput" value="${dueDate}"></td>
+          <td><input type="number" placeholder="Mark" min="0" max="100"></td>
+          <td><input type="number" placeholder="Weight" min="0" max="100" value="${weight}"></td>
+          <td><span class="lostPoints">0</span></td>
+          <td>
+            <button class="addRowBtn" title="Add Row">+</button>
+            <button class="removeRowBtn" title="Remove Row">-</button>
+            <button class="moveRowBtn" title="Move Row">&#9776;</button>
+          </td>
+        `;
+        
+        // Insert the new row
+        if (insertBeforeRow) {
+          table.insertBefore(newRow, insertBeforeRow);
+        } else {
+          table.appendChild(newRow);
+        }
+        
+        // Reinitialize event listeners for the new row
+        if (typeof attachEventListeners === 'function') {
+          attachEventListeners(table);
+        }
+      }
+      
+      // Handle parse syllabus button click
+      document.addEventListener('DOMContentLoaded', function() {
+        const parseButton = document.querySelector('.parseSyllabusButton');
+        if (parseButton) {
+          parseButton.addEventListener('click', async function() {
+            const syllabusText = document.querySelector('.syllabusTextbox').value.trim();
+            
+            if (!syllabusText) {
+              alert('Please enter syllabus text first');
+              return;
+            }
+            
+            // Show loading state
+            parseButton.textContent = 'Parsing...';
+            parseButton.disabled = true;
+            
+            try {
+              const assignments = await parseSyllabusWithAI(syllabusText);
+              
+              // Add each assignment to the table
+              assignments.forEach(assignment => {
+                addAssignmentRow(
+                  assignment.name || 'Assignment',
+                  assignment.weight || 0,
+                  assignment.dueDate || 'TBD'
+                );
+              });
+              
+              // Close modal
+              document.querySelector('.syllabusModal').style.display = 'none';
+              
+              // Clear the textarea
+              document.querySelector('.syllabusTextbox').value = '';
+              
+              alert(`Successfully parsed ${assignments.length} assignments!`);
+              
+            } catch (error) {
+              alert('Error parsing syllabus: ' + error.message);
+              console.error('Parse error:', error);
+            } finally {
+              // Reset button
+              parseButton.textContent = 'Parse Syllabus';
+              parseButton.disabled = false;
+            }
+          });
+        }
+      });
     </script>
 </body>
 </html>
