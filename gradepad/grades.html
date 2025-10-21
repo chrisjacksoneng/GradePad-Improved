@@ -20,7 +20,7 @@
     
     /* Add padding to body to account for fixed header */
     body {
-      padding-top: 80px !important;
+      padding-top: 0px !important;
     }
     
     /* Ensure header styles work */
@@ -49,6 +49,17 @@
       font-weight: 600 !important;
       font-size: 1rem !important;
       border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    }
+    
+    /* Make all table rows the same color */
+    tr:nth-child(odd) td,
+    tr:nth-child(even) td {
+      background-color: #ffffff !important;
+    }
+    
+    /* Align table with calculator logo */
+    .table-container {
+      margin-left: 60px !important;
     }
     
     .header-nav a, .login-link, .cta-button {
