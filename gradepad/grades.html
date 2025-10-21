@@ -99,48 +99,6 @@
     </div>
   </div>
 
-  <div id="page-summary" class="titleRow">
-    <input type="text" placeholder="Page Title (e.g. Spring 2025)" id="page-title" readonly>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-          const pageTitleInput = document.getElementById("page-title");
-        
-          // Function to update width based on content.
-          function updateWidth() {
-            // Create a temporary span element to measure text width.
-            const tempSpan = document.createElement("span");
-            // Inherit font styles from the input.
-            const computedStyle = window.getComputedStyle(pageTitleInput);
-            tempSpan.style.fontFamily = computedStyle.fontFamily;
-            tempSpan.style.fontSize = computedStyle.fontSize;
-            tempSpan.style.visibility = "hidden";
-            tempSpan.style.whiteSpace = "nowrap";
-            // Use the input's current value.
-            tempSpan.textContent = pageTitleInput.value || "";
-            document.body.appendChild(tempSpan);
-            // Calculate new width plus a small buffer.
-            const newWidth = tempSpan.offsetWidth + 20;
-            document.body.removeChild(tempSpan);
-            // Update the input's width.
-            pageTitleInput.style.width = newWidth + "px";
-          }
-        
-          // Update width when user types.
-          pageTitleInput.addEventListener("input", updateWidth);
-        
-          // Read query parameters from URL.
-          const params = new URLSearchParams(window.location.search);
-          const semesterName = params.get("semesterName");
-          if (semesterName) {
-            pageTitleInput.value = semesterName;
-            updateWidth(); // Adjust width based on the new value.
-          }
-        });
-        </script>
-        
-        
-    <span id="current-gpa">Term GPA: 0.00</span>
-  </div>
 
   <div class="table-container">
     <div class="table-wrapper">
