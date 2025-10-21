@@ -86,7 +86,7 @@
     .deleteButton, .syllabusButton {
       background: transparent !important;
       color: #ffffff !important;
-      border: 1px solid rgba(255, 255, 255, 0.3) !important;
+      border: none !important;
       border-radius: 8px !important;
       padding: 10px 16px !important;
       font-size: 13px !important;
@@ -99,13 +99,24 @@
     
     .deleteButton:hover, .syllabusButton:hover {
       background: rgba(255, 255, 255, 0.1) !important;
-      border-color: rgba(255, 255, 255, 0.5) !important;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.4) !important;
       transform: translateY(-2px) !important;
     }
     
     .deleteButton:active, .syllabusButton:active {
       transform: translateY(0px) !important;
       background: rgba(255, 255, 255, 0.05) !important;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.2) !important;
+    }
+    
+    /* Change course code and topic text to white */
+    .courseCode, .courseTopic {
+      color: #ffffff !important;
+    }
+    
+    /* Change placeholder text to white as well */
+    .courseCode::placeholder, .courseTopic::placeholder {
+      color: rgba(255, 255, 255, 0.7) !important;
     }
     
     .brand-name {
@@ -160,10 +171,10 @@
             <div class="courseContainer">
               <div class="titleBox">
                 <input type="text" placeholder="Insert Course Code" class="courseCode">
-                <button class="deleteButton" title="Delete Table">🗑️</button>
+                <button class="deleteButton" title="Delete Table"><i data-lucide="trash-2" style="width: 20px; height: 20px;"></i></button>
                 <button class="fullScreen" title="Collapse Table">←</button>
                 <input type="text" placeholder="Insert Course Topic" class="courseTopic">
-                <button class="syllabusButton" title="Parse Syllabus">📄</button>
+                <button class="syllabusButton" title="Parse Syllabus"><i data-lucide="file-text" style="width: 20px; height: 20px;"></i></button>
                 <div class="syllabusModal modal">
                   <div class="modal-content" class="syllabusmodalcontent">
                     <span class="close">&times;</span>
