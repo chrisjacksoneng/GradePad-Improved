@@ -28,6 +28,29 @@
       display: flex !important;
     }
     
+    .top-header {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+    }
+    
+    .header-center {
+      flex: 1 !important;
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+    }
+    
+    .gpa-display {
+      background-color: rgba(255, 255, 255, 0.1) !important;
+      color: white !important;
+      padding: 8px 16px !important;
+      border-radius: 20px !important;
+      font-weight: 600 !important;
+      font-size: 1rem !important;
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    }
+    
     .header-nav a, .login-link, .cta-button {
       color: #ffffff !important;
       text-decoration: none !important;
@@ -49,8 +72,11 @@
   <header class="top-header">
     <a href="index.html" class="header-left">
       <i data-lucide="calculator" style="width: 32px; height: 32px; color: white; margin-right: 10px;"></i>
-      <span class="brand-name">GradePad</span>
+      <span class="brand-name" id="semesterName">GradePad</span>
     </a>
+    <div class="header-center">
+      <span id="navGpa" class="gpa-display">GPA: 0.00</span>
+    </div>
     <div class="header-right">
       <a href="app.html" class="login-link">Semester Dashboard</a>
     </div>
@@ -258,6 +284,63 @@ onAuthStateChanged(async (user) => {
     <script>
       // Initialize Lucide icons
       lucide.createIcons();
+      
+      // Update semester name in header
+      function updateSemesterName() {
+        // Try to get semester name from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const semesterName = urlParams.get('semester');
+        
+        if (semesterName) {
+          document.getElementById('semesterName').textContent = semesterName;
+        } else {
+          // Try to get from localStorage or default
+          const storedSemester = localStorage.getItem('currentSemesterName');
+          if (storedSemester) {
+            document.getElementById('semesterName').textContent = storedSemester;
+          } else {
+            // Default fallback - you can change this to whatever semester name you want
+            document.getElementById('semesterName').textContent = 'Fall 2023';
+          }
+        }
+      }
+      
+      // Update GPA in navigation header
+      function updateNavGpa() {
+        const currentGpaElement = document.getElementById('current-gpa');
+        const navGpaElement = document.getElementById('navGpa');
+        
+        if (currentGpaElement && navGpaElement) {
+          // Extract GPA value from existing element
+          const gpaText = currentGpaElement.textContent;
+          const gpaMatch = gpaText.match(/(\d+\.\d+)/);
+          
+          if (gpaMatch) {
+            navGpaElement.textContent = `GPA: ${gpaMatch[1]}`;
+          } else {
+            navGpaElement.textContent = 'GPA: 0.00';
+          }
+        }
+      }
+      
+      // Call on page load
+      updateSemesterName();
+      updateNavGpa();
+      
+      // Set up observer to watch for GPA changes
+      const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          if (mutation.target.id === 'current-gpa') {
+            updateNavGpa();
+          }
+        });
+      });
+      
+      // Start observing the GPA element for changes
+      const gpaElement = document.getElementById('current-gpa');
+      if (gpaElement) {
+        observer.observe(gpaElement, { childList: true, characterData: true, subtree: true });
+      }
     </script>
 </body>
 </html>
