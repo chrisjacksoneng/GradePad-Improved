@@ -115,7 +115,7 @@ body:has(.about-hero) {
 /* Hero Section */
 .hero-section {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   padding: 40px;
   height: calc(100vh - 140px);
@@ -123,9 +123,15 @@ body:has(.about-hero) {
 }
 
 .hero-left {
-  flex: 1;
+  flex: 0 0 auto;
   max-width: 600px;
   z-index: 2;
+  margin-left: auto;
+  margin-right: 50px;
+  position: absolute;
+  right: 1100px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .hero-title {
@@ -462,10 +468,13 @@ body:has(.about-hero) {
   .hero-section {
     flex-direction: column;
     text-align: center;
+    justify-content: center;
   }
 
   .hero-left {
     max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .hero-buttons {

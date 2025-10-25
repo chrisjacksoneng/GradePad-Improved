@@ -6,6 +6,7 @@ const urlsToCache = [
   '/gradepad/grades.html',
   '/gradepad/styles/styles.css',
   '/gradepad/assets/images/gradepadlogo.png',
+  '/gradepad/jsScripts/firebase.js',
   '/gradepad/jsScripts/auth.js',
   '/gradepad/jsScripts/main.js',
   '/gradepad/jsScripts/db.js'
@@ -24,19 +25,11 @@ self.addEventListener('install', (event) => {
 
 // Fetch event - serve from cache when offline
 self.addEventListener('fetch', (event) => {
-  // Skip chrome-extension requests
-  if (event.request.url.startsWith('chrome-extension://')) {
-    return;
-  }
-  
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
         // Return cached version or fetch from network
-        return response || fetch(event.request).catch(() => {
-          // Return a basic response for failed requests
-          return new Response('Network error', { status: 408 });
-        });
+        return response || fetch(event.request);
       }
     )
   );

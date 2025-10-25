@@ -89,10 +89,7 @@ function calculateCurrentGPA() {
 
   const average =
     totalUnits > 0 ? (weightedGradeSum / totalUnits).toFixed(2) : "0.00";
-  const gpaElement = document.getElementById("current-gpa");
-  if (gpaElement) {
-    gpaElement.textContent = `Term GPA: ${average}`;
-  }
+  document.getElementById("current-gpa").textContent = `Term GPA: ${average}`;
 }
 
 
@@ -796,10 +793,7 @@ if (settingsBtn && settingsModal && settingsClose) {
     
       const average =
         totalUnits > 0 ? (weightedGradeSum / totalUnits).toFixed(2) : "0.00";
-      const gpaElement = document.getElementById("current-gpa");
-  if (gpaElement) {
-    gpaElement.textContent = `Term GPA: ${average}`;
-  }
+      document.getElementById("current-gpa").textContent = `Term GPA: ${average}`;
     }
     
   
