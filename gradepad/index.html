@@ -45,7 +45,7 @@
             <p class="hero-subtitle">The intelligent grade tracker that helps students achieve their academic goals with smart analytics and real-time insights.</p>
             <div class="hero-buttons">
                 <a href="about.html" class="btn-primary">Learn More</a>
-                <a href="features.html" class="btn-secondary">→ Get Started</a>
+                <a id="getStartedButton" href="#" class="btn-secondary">→ Get Started</a>
             </div>
         </div>
         <div class="hero-right">
@@ -182,34 +182,43 @@
         lucide.createIcons();
     </script>
     <script type="module">
-        import { signInWithGoogle } from './jsScripts/firebase.js';
+        import { signInWithGoogle, onAuthChange } from './jsScripts/firebase.js';
         const btn = document.getElementById('googleSignInButton');
+        const getStarted = document.getElementById('getStartedButton');
+        const guestBtn = document.querySelector('.cta-button');
+        const headerRight = document.querySelector('.header-right');
         let isSigningIn = false;
-        if (btn) {
-            btn.addEventListener('click', async (e) => {
-                e.preventDefault();
-                if (isSigningIn) return; // prevent concurrent popups
-                isSigningIn = true;
-                btn.style.pointerEvents = 'none';
-                btn.style.opacity = '0.7';
-                try {
-                    await signInWithGoogle();
-                    window.location.href = 'gradepad/grades.html';
-                } catch (err) {
-                    // Ignore duplicate-popup cancellation; surface others
-                    if (err && err.code === 'auth/cancelled-popup-request') {
-                        console.warn('Popup cancelled (another popup was opened).');
-                    } else {
-                        console.error('Sign-in failed:', err);
-                        alert('Sign-in failed. Please try again.');
-                    }
-                } finally {
-                    isSigningIn = false;
-                    btn.style.pointerEvents = '';
-                    btn.style.opacity = '';
+        const doSignIn = async () => {
+            if (isSigningIn) return;
+            isSigningIn = true;
+            if (btn) { btn.style.pointerEvents = 'none'; btn.style.opacity = '0.7'; }
+            try {
+                await signInWithGoogle();
+                window.location.href = 'gradepad/grades.html';
+            } catch (err) {
+                if (!err || err.code !== 'auth/cancelled-popup-request') {
+                    console.error('Sign-in failed:', err);
+                    alert('Sign-in failed. Please try again.');
                 }
-            });
-        }
+            } finally {
+                isSigningIn = false;
+                if (btn) { btn.style.pointerEvents = ''; btn.style.opacity = ''; }
+            }
+        };
+
+        btn?.addEventListener('click', (e) => { e.preventDefault(); doSignIn(); });
+        getStarted?.addEventListener('click', (e) => { e.preventDefault(); doSignIn(); });
+
+        onAuthChange((user) => {
+            if (!user) return;
+            if (btn) {
+                btn.innerHTML = `<span>${user.displayName || 'Account'}</span>`;
+                btn.href = 'gradepad/grades.html';
+            }
+            if (guestBtn && headerRight) {
+                headerRight.removeChild(guestBtn);
+            }
+        });
     </script>
 </body>
 </html>
