@@ -344,7 +344,6 @@
           <th class="collapse-hide">Due</th>
           <th>Mark</th>
           <th class="collapse-hide">Weight</th>
-          <th class="collapse-hide">Lost</th>
           <th class="collapse-hide">Actions</th>
         </tr>
         <tr>
@@ -352,7 +351,6 @@
           <td><input type="text" class="dueInput"></td>
           <td><input type="text" class="gradeInput"></td>
           <td><input type="text" class="weightInput"></td>
-          <td><span class="lostOutput">—</span></td>
           <td class="actionsColumn">
             <button class="addRowBtn" title="Add row below">+</button>
             <button class="removeRowBtn" title="Remove selected row">-</button>
@@ -364,7 +362,6 @@
           <td><input type="text" class="dueInput"></td>
           <td><input type="text" class="gradeInput"></td>
           <td><input type="text" class="weightInput"></td>
-          <td><span class="lostOutput">—</span></td>
           <td class="actionsColumn">
             <button class="addRowBtn" title="Add row below">+</button>
             <button class="removeRowBtn" title="Remove selected row">-</button>
@@ -376,7 +373,6 @@
           <td><input type="text" class="dueInput"></td>
           <td><input type="text" class="gradeInput"></td>
           <td><input type="text" class="weightInput"></td>
-          <td><span class="lostOutput">—</span></td>
           <td class="actionsColumn">
             <button class="addRowBtn" title="Add row below">+</button>
             <button class="removeRowBtn" title="Remove selected row">-</button>
@@ -671,7 +667,7 @@ Rules:
               let depth = 0;
               let endBracket = -1;
               for (let i = firstBracket; i < cleanedText.length; i++) {
-                if (cleanedText[i] === '[' Ci++;
+                if (cleanedText[i] === '[') depth++;
                 if (cleanedText[i] === ']') depth--;
                 if (depth === 0) {
                   endBracket = i;
@@ -720,8 +716,7 @@ Rules:
           <td><input type="text" class="dueInput" value="${dueDate}"></td>
           <td><input type="number" placeholder="Mark" min="0" max="100"></td>
           <td><input type="number" placeholder="Weight" min="0" max="100" value="${weight}"></td>
-          <td><span class="lostPoints">0</span></td>
-          <td>
+          <td class="actionsColumn">
             <button class="addRowBtn" title="Add Row">+</button>
             <button class="removeRowBtn" title="Remove Row">-</button>
             <button class="moveRowBtn" title="Move Row">&#9776;</button>
@@ -758,7 +753,24 @@ Rules:
             parseButton.disabled = true;
             
             try {
-              const assignments = await parseSyllabusWithAI(syllabusText);
+              const parsedData = await parseSyllabusWithAI(syllabusText);
+              
+              // Extract course info and assignments (handle both old array and new object format)
+              const courseCode = parsedData.courseCode || "";
+              const courseTitle = parsedData.courseTitle || "";
+              const assignments = parsedData.assignments || parsedData; // Fallback to old format
+              
+              // Fill in course code and title fields
+              const courseCodeInput = document.querySelector('.courseCode');
+              const courseTitleInput = document.querySelector('.courseTopic');
+              
+              if (courseCodeInput && courseCode) {
+                courseCodeInput.value = courseCode;
+              }
+              
+              if (courseTitleInput && courseTitle) {
+                courseTitleInput.value = courseTitle;
+              }
               
               // Add each assignment to the table
               assignments.forEach(assignment => {
