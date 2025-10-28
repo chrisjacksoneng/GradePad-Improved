@@ -186,13 +186,13 @@
     </script>
     <script type="module">
         import { signInWithGoogle, onAuthChange, signOutUser } from './jsScripts/firebase.js';
-        const btn = document.getElementById('googleSignInButton');
+        let btn = document.getElementById('googleSignInButton');
         const getStarted = document.getElementById('getStartedButton');
-        const guestBtn = document.querySelector('.cta-button');
+        let guestBtn = document.querySelector('.cta-button');
         const headerRight = document.querySelector('.header-right');
         let isSigningIn = false;
-        const userMenu = document.getElementById('userMenu');
-        const signOutBtn = document.getElementById('signOut');
+        let userMenu = document.getElementById('userMenu');
+        let signOutBtn = document.getElementById('signOut');
         const doSignIn = async () => {
             if (isSigningIn) return;
             isSigningIn = true;
@@ -211,27 +211,64 @@
             }
         };
 
-        btn?.addEventListener('click', (e) => { e.preventDefault(); doSignIn(); });
+        // Keep named handlers so we can swap them when signed in/out
+        const signInClickHandler = (e) => { e.preventDefault(); doSignIn(); };
+        const signOutHandler = async (e) => {
+            e.preventDefault();
+            try { await signOutUser(); } finally {
+                if (btn) {
+                    btn.innerHTML = '<span>Sign in</span>';
+                    btn.href = '#';
+                    btn.removeEventListener('click', signOutHandler);
+                    btn.addEventListener('click', signInClickHandler);
+                }
+                addGuestButtonIfMissing();
+            }
+        };
+
+        btn?.addEventListener('click', signInClickHandler);
         getStarted?.addEventListener('click', (e) => { e.preventDefault(); doSignIn(); });
 
+        const addGuestButtonIfMissing = () => {
+            if (!headerRight) return;
+            guestBtn = headerRight.querySelector('.cta-button');
+            if (!guestBtn) {
+                const a = document.createElement('a');
+                a.href = 'grades.html';
+                a.className = 'cta-button';
+                a.textContent = '→ Continue as guest';
+                headerRight.appendChild(a);
+                guestBtn = a;
+            }
+        };
+
         onAuthChange((user) => {
-            if (!user) return;
-            if (btn) {
-                btn.innerHTML = `<span>${user.displayName || 'Account'} ▼</span>`;
-                btn.href = '#';
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    if (userMenu) userMenu.style.display = userMenu.style.display === 'none' ? 'block' : 'none';
-                });
+            if (user) {
+                if (btn) {
+                    // Replace the button node to ensure ALL old listeners are removed
+                    const newBtn = btn.cloneNode(true);
+                    newBtn.innerHTML = `<span>${user.displayName || 'Sign out'}</span>`;
+                    newBtn.href = '#';
+                    newBtn.addEventListener('click', signOutHandler);
+                    btn.parentNode.replaceChild(newBtn, btn);
+                    // update references to elements inside the button
+                    btn = newBtn;
+                }
+                if (guestBtn && headerRight) {
+                    headerRight.removeChild(guestBtn);
+                }
+                // no dropdown; click name signs out
+            } else {
+                // Not signed in → ensure default UI
+                if (btn) {
+                    btn.innerHTML = '<span>Sign in</span>';
+                    btn.href = '#';
+                    btn.removeEventListener('click', signOutHandler);
+                    btn.removeEventListener('click', signInClickHandler);
+                    btn.addEventListener('click', signInClickHandler);
+                }
+                addGuestButtonIfMissing();
             }
-            if (guestBtn && headerRight) {
-                headerRight.removeChild(guestBtn);
-            }
-            signOutBtn?.addEventListener('click', async () => {
-                await signOutUser();
-                if (userMenu) userMenu.style.display = 'none';
-                window.location.reload();
-            });
         });
     </script>
 </body>
