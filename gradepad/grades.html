@@ -35,9 +35,10 @@
     }
     
     .header-center {
-      flex: 1 !important;
+      position: absolute !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
       display: flex !important;
-      justify-content: center !important;
       align-items: center !important;
     }
     
@@ -273,6 +274,25 @@
       font-style: italic !important;
       font-size: 2rem !important;
       color: #ffffff !important;
+      background: transparent !important;
+      border: none !important;
+      outline: none !important;
+      padding: 0 !important;
+      margin-top: 8px !important;
+    }
+    
+    .brand-name::placeholder {
+      color: grey !important;
+    }
+    
+    .header-left a {
+      text-decoration: none !important;
+      display: flex !important;
+      align-items: center !important;
+    }
+    
+    .header-left a:hover {
+      opacity: 0.7 !important;
     }
   </style>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><rect x=%224%22 y=%222%22 width=%2216%22 height=%2220%22 rx=%222%22/><path d=%22M8 6h8%22/><circle cx=%228%22 cy=%2210%22 r=%221%22/><circle cx=%2210%22 cy=%2210%22 r=%221%22/><circle cx=%2212%22 cy=%2210%22 r=%221%22/><circle cx=%228%22 cy=%2213%22 r=%221%22/><circle cx=%2210%22 cy=%2213%22 r=%221%22/><circle cx=%2212%22 cy=%2213%22 r=%221%22/><circle cx=%228%22 cy=%2216%22 r=%221%22/><circle cx=%2210%22 cy=%2216%22 r=%221%22/><circle cx=%2212%22 cy=%2216%22 r=%221%22/><rect x=%2214%22 y=%2210%22 width=%224%22 height=%227%22 rx=%221%22/></svg>">
@@ -283,15 +303,16 @@
 <body>
   <!-- Top Navigation Bar -->
   <header class="top-header">
-    <a href="index.html" class="header-left">
-      <i data-lucide="calculator" style="width: 32px; height: 32px; color: white; margin-right: 10px;"></i>
-      <span class="brand-name" id="semesterName">GradePad</span>
-    </a>
+    <div class="header-left">
+      <a href="index.html">
+        <i data-lucide="calculator" style="width: 32px; height: 32px; color: white; margin-right: 10px;"></i>
+      </a>
+      <input type="text" class="brand-name" id="semesterName" placeholder="Insert semester name">
+    </div>
     <div class="header-center">
       <span id="navGpa" class="gpa-display">GPA: 0.00</span>
             </div>
     <div class="header-right">
-      <a href="index.html" class="login-link">Home</a>
           </div>
   </header>
       <div id="settingsModal" class="modal">
