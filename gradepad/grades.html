@@ -565,28 +565,28 @@ onAuthStateChanged(async (user) => {
           throw new Error('Groq AI not properly configured');
         }
         
-        const prompt = `
-        Parse this course syllabus and extract assignment information in JSON format.
-        
-        Syllabus text:
-        ${syllabusText}
-        
-        Return ONLY a JSON array with this exact structure:
-        [
-          {
-            "name": "Assignment Name",
-            "weight": 25,
-            "dueDate": "2024-01-15"
-          }
-        ]
-        
-        Rules:
-        - Extract all assignments, exams, projects, etc.
-        - Convert percentages to numbers (e.g., "25%" becomes 25)
-        - Use YYYY-MM-DD format for dates
-        - If no date is specified, use "TBD"
-        - Return only valid JSON, no other text
-        `;
+        const prompt = `Parse this course syllabus and extract information.
+
+Syllabus:
+${syllabusText}
+
+Return ONLY a JSON object with this structure:
+{
+  "courseCode": "CS 101",
+  "courseTitle": "Introduction to Computer Science",
+  "assignments": [
+    {"name": "Midterm Exam", "weight": 30, "dueDate": "2024-03-15"},
+    {"name": "Final Project", "weight": 40, "dueDate": "2024-04-20"}
+  ]
+}
+
+Rules:
+- Extract course code (e.g., "CS 101", "ENG 200")
+- Extract course title/name
+- Extract ALL assignments, exams, projects, quizzes
+- Convert percentages to numbers (e.g., "25%" → 25)
+- Use YYYY-MM-DD for dates or "TBD"
+- Return ONLY valid JSON, no explanations`;
         
         try {
           console.log('Making Groq API request...');
@@ -640,19 +640,38 @@ onAuthStateChanged(async (user) => {
           // Look for a JSON code block or the first complete array
           let jsonToParse = '';
           
-          // Try to find JSON in a code block first
-          const codeBlockMatch = text.match(/```json\s*(\[[\s\S]*?\])\s*```/);
+          // Try to find JSON in a code block first (could be object or array)
+          const codeBlockMatch = text.match(/```json\s*(\{[\s\S]*?\}|\[[\s\S]*?\])\s*```/);
           if (codeBlockMatch && codeBlockMatch[1]) {
             jsonToParse = codeBlockMatch[1];
-            console.log('TS found JSON in code block');
+            console.log('Found JSON in code block');
           } else {
-            // If no code block, find the first balanced JSON array
+            // If no code block, find the first balanced JSON (object or array)
+            const firstChar = cleanedText.indexOf('{');
             const firstBracket = cleanedText.indexOf('[');
-            if (firstBracket !== -1) {
+            
+            // Check if it's an object
+            if (firstChar !== -1 && (firstBracket === -1 || firstChar < firstBracket)) {
+              let depth = 0;
+              let endChar = -1;
+              for (let i = firstChar; i < cleanedText.length; i++) {
+                if (cleanedText[i] === '{') depth++;
+                if (cleanedText[i] === '}') depth--;
+                if (depth === 0) {
+                  endChar = i;
+                  break;
+                }
+              }
+              if (endChar !== -1 && endChar > firstChar) {
+                jsonToParse = cleanedText.substring(firstChar, endChar + 1);
+                console.log('Found first balanced JSON object');
+              }
+            } else if (firstBracket !== -1) {
+              // Check if it's an array
               let depth = 0;
               let endBracket = -1;
               for (let i = firstBracket; i < cleanedText.length; i++) {
-                if (cleanedText[i] === '[') depth++;
+                if (cleanedText[i] === '[' Ci++;
                 if (cleanedText[i] === ']') depth--;
                 if (depth === 0) {
                   endBracket = i;
