@@ -22,7 +22,7 @@ export default defineConfig({
   },
   server: {
     port: 3003, // Use a different port to avoid conflicts
-    open: true,
+    open: '/gradepad/index.html',
     host: true
   },
   define: {
