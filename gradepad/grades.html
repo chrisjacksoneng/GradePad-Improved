@@ -565,31 +565,28 @@ onAuthStateChanged(async (user) => {
           throw new Error('Groq AI not properly configured');
         }
         
-        const prompt = `Parse this course syllabus and extract information.
-
-Syllabus:
-${syllabusText}
-
-Return JSON object with this structure:
-{
-  "courseCode": "CS 101",
-  "courseTitle": "Introduction to Computer Science",
-  "assignments": [
-    {"name": "Midterm Exam", "weight": 30, "dueDate": "2024-03-15"},
-    {"name": "Final Project", "weight": 40, "dueDate": "2024-04-20"}
-  ]
-}
-
-Rules:
-- Extract course code (e.g., "CS 101", "ENG 200", "MATH 301")
-- Extract course title/name
-- Extract ALL assignments, exams, projects, quizzes
-- Convert percentage weights to numbers (e.g., "25%" → 25)
-- Use YYYY-MM-DD for dates
-- If no date found, use "TBD"
-- Return ONLY the JSON object, no explanations, no markdown, no other text
-
-JSON only:`;
+        const prompt = `
+        Parse this course syllabus and extract assignment information in JSON format.
+        
+        Syllabus text:
+        ${syllabusText}
+        
+        Return ONLY a JSON array with this exact structure:
+        [
+          {
+            "name": "Assignment Name",
+            "weight": 25,
+            "dueDate": "2024-01-15"
+          }
+        ]
+        
+        Rules:
+        - Extract all assignments, exams, projects, etc.
+        - Convert percentages to numbers (e.g., "25%" becomes 25)
+        - Use YYYY-MM-DD format for dates
+        - If no date is specified, use "TBD"
+        - Return only valid JSON, no other text
+        `;
         
         try {
           console.log('Making Groq API request...');
@@ -605,7 +602,7 @@ JSON only:`;
               messages: [
                 {
                   role: 'system',
-                  content: 'You are a helpful assistant that parses course syllabi and returns structured JSON data. Extract course code (like CS101, ENG200) and course title from the syllabus.'
+                  content: 'You are a helpful assistant that parses course syllabi and returns structured JSON data.'
                 },
                 {
                   role: 'user',
@@ -634,16 +631,44 @@ JSON only:`;
           
           const text = data.choices[0].message.content;
           
+          console.log('Raw AI response:', text);
+          
           // Clean up the response (remove any markdown formatting)
           let cleanedText = text.replace(/```json\n?|\n?```/g, '').trim();
           
-          // Try to extract JSON if there's extra text
-          const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            cleanedText = jsonMatch[0];
+          // Find the FIRST complete JSON array (not everything from first [ to last ])
+          // Look for a JSON code block or the first complete array
+          let jsonToParse = '';
+          
+          // Try to find JSON in a code block first
+          const codeBlockMatch = text.match(/```json\s*(\[[\s\S]*?\])\s*```/);
+          if (codeBlockMatch && codeBlockMatch[1]) {
+            jsonToParse = codeBlockMatch[1];
+            console.log('TS found JSON in code block');
+          } else {
+            // If no code block, find the first balanced JSON array
+            const firstBracket = cleanedText.indexOf('[');
+            if (firstBracket !== -1) {
+              let depth = 0;
+              let endBracket = -1;
+              for (let i = firstBracket; i < cleanedText.length; i++) {
+                if (cleanedText[i] === '[') depth++;
+                if (cleanedText[i] === ']') depth--;
+                if (depth === 0) {
+                  endBracket = i;
+                  break;
+                }
+              }
+              if (endBracket !== -1 && endBracket > firstBracket) {
+                jsonToParse = cleanedText.substring(firstBracket, endBracket + 1);
+                console.log('Found first balanced JSON array');
+              }
+            }
           }
           
-          return JSON.parse(cleanedText);
+          console.log('Extracted JSON:', jsonToParse.substring(0, 200) + '...');
+          
+          return JSON.parse(jsonToParse);
         } catch (error) {
           console.error('Error parsing syllabus:', error);
           throw new Error('Failed to parse syllabus: ' + error.message);
@@ -714,24 +739,7 @@ JSON only:`;
             parseButton.disabled = true;
             
             try {
-              const parsedData = await parseSyllabusWithAI(syllabusText);
-              
-              // Extract course info and assignments
-              const courseCode = parsedData.courseCode || "";
-              const courseTitle = parsedData.courseTitle || "";
-              const assignments = parsedData.assignments || [];
-              
-              // Fill in course code and title fields
-              const courseCodeInput = document.querySelector('.courseCode');
-              const courseTitleInput = document.querySelector('.courseTopic');
-              
-              if (courseCodeInput && courseCode) {
-                courseCodeInput.value = courseCode;
-              }
-              
-              if (courseTitleInput && courseTitle) {
-                courseTitleInput.value = courseTitle;
-              }
+              const assignments = await parseSyllabusWithAI(syllabusText);
               
               // Add each assignment to the table
               assignments.forEach(assignment => {
@@ -765,7 +773,7 @@ JSON only:`;
                 modals.forEach(m => m.style.display = 'none');
               }
               
-              // Successfully parsed - no alert needed
+              // Successfully parsed - no popup needed
               
               // Force close modal with additional methods
               setTimeout(() => {
