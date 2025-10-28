@@ -575,8 +575,8 @@ Return ONLY a JSON object in this format:
   "courseCode": "CS 101",
   "courseTitle": "Introduction to Computer Science",
   "assignments": [
-    {"name": "Midterm Exam", "weight": 30, "dueDate": "2024-03-15"},
-    {"name": "Final Project", "weight": 40, "dueDate": "2024-04-20"}
+    {"name": "Midterm Exam", "weight": 30, "dueDate": "Mar 15"},
+    {"name": "Final Project", "weight": 40, "dueDate": "Apr 20"}
   ]
 }
 
@@ -586,7 +586,8 @@ CRITICAL RULES:
 - Keep the exact order as listed in the syllabus
 - Extract course code exactly as written (e.g., "SYDE 199")
 - Extract course title exactly as written
-- For dates, use the format shown (convert to YYYY-MM-DD if possible, otherwise keep original)
+- For dates, use format "MMM DD" (e.g., "Jan 16", "Feb 13")
+- If date is "Ongoing" or similar, keep as "Ongoing"
 - Weight percentages: convert "2.5%" to 2.5, "20%" to 20, etc.
 - Return ONLY the JSON object, no explanations, no summaries`;
         
