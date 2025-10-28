@@ -1,5 +1,7 @@
 # API Keys and Configuration
 config.js
+.firebase-config.js
+gradepad/jsScripts/firebase-config.js
 .env
 api-keys.js
 
