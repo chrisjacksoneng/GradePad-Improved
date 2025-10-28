@@ -164,12 +164,67 @@ export function attachSyllabusButtonListeners(tableElement) {
     if (event.target === syllabusModal) syllabusModal.style.display = "none";
   });
 
-  parseSyllabusButton.addEventListener("click", () => {
+  parseSyllabusButton.addEventListener("click", async () => {
     const syllabusText = syllabusTextbox.value;
     const table = tableElement.querySelector("table");
     const finalGradeRow = table.querySelector("#finalGradeRow");
 
-    if (!table || !finalGradeRow) return;
+    if (!table || !finalGradeRow || !syllabusText) return;
+
+    // Show loading state
+    parseSyllabusButton.textContent = 'Parsing...';
+    parseSyllabusButton.disabled = true;
+
+    try {
+      // Try AI parsing first if available
+      if (window.parseSyllabusWithAI) {
+        const parsedData = await window.parseSyllabusWithAI(syllabusText);
+        
+        // Extract course info and assignments
+        const courseCode = parsedData.courseCode || "";
+        const courseTitle = parsedData.courseTitle || "";
+        const assignments = parsedData.assignments || parsedData;
+        
+        // Fill in course code and title fields
+        const courseCodeInput = table.querySelector(".courseCode");
+        const courseTitleInput = table.querySelector(".courseTopic");
+        
+        if (courseCodeInput && courseCode) courseCodeInput.value = courseCode;
+        if (courseTitleInput && courseTitle) courseTitleInput.value = courseTitle;
+        
+        // Clear existing data rows
+        const existingRows = table.querySelectorAll("tr:not(:first-child, .columnTitles, #finalGradeRow)");
+        existingRows.forEach(row => row.remove());
+        
+        // Add each assignment
+        assignments.forEach(assignment => {
+          const newRow = document.createElement("tr");
+          newRow.innerHTML = `
+            <td><input type="text" value="${assignment.name || 'Assignment'}"></td>
+            <td><input type="text" class="dueInput" value="${assignment.dueDate || 'TBD'}"></td>
+            <td><input type="number" class="gradeInput"></td>
+            <td><input type="number" class="weightInput" value="${assignment.weight || 0}"></td>
+            <td><span class="lostOutput">—</span></td>
+            <td class="actionsColumn">
+              <button class="addRowBtn" title="Add row below">+</button>
+              <button class="removeRowBtn" title="Remove selected row">-</button>
+              <button class="moveRowBtn" title="Move selected row">&#9776;</button>
+            </td>
+          `;
+          finalGradeRow.before(newRow);
+        });
+        
+        const wrapper = table.closest(".table-wrapper");
+        attachEventListeners(wrapper);
+        calculateFinalGrade(table);
+        syllabusModal.style.display = "none";
+        parseSyllabusButton.textContent = 'Parse Syllabus';
+        parseSyllabusButton.disabled = false;
+        return;
+      }
+    } catch (error) {
+      console.log('AI parsing failed, falling back to local parsing:', error.message);
+    }
 
     const lines = syllabusText.trim().split("\n");
     const rows = [];
@@ -223,6 +278,10 @@ export function attachSyllabusButtonListeners(tableElement) {
     attachEventListeners(wrapper);
     calculateFinalGrade(table);
     syllabusModal.style.display = "none";
+    
+    // Reset button
+    parseSyllabusButton.textContent = 'Parse Syllabus';
+    parseSyllabusButton.disabled = false;
   });
 }
 
