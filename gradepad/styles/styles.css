@@ -633,7 +633,7 @@ table.collapsed .collapse-hide {
 #addTable {
   display: inline-block;
   justify-content: space-between;
-  border: 0.2em solid black;
+  border: 0.2em solid #ffffff;
 }
 
 .table-container {
