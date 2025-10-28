@@ -161,10 +161,10 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
             <div class="courseContainer">
               <div class="titleBox">
                 <input type="text" placeholder="Insert Course Code" class="courseCode">
-                <button class="deleteButton" title="Delete Table">🗑️</button>
+                <button class="deleteButton" title="Delete Table"><i data-lucide="trash-2" style="width: 20px; height: 20px;"></i></button>
                 <button class="fullScreen" title="Collapse Table">←</button>
                 <input type="text" placeholder="Insert Course Topic" class="courseTopic">
-                <button class="syllabusButton" title="Parse Syllabus">📄</button>
+                <button class="syllabusButton" title="Parse Syllabus"><i data-lucide="file-text" style="width: 20px; height: 20px;"></i></button>
                 <div class="syllabusModal modal">
                   <div class="modal-content">
                     <span class="close">&times;</span>
@@ -279,6 +279,11 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
   const unitsDropdown = newTable.querySelector(".courseUnitsDropdown");
   const codeInput = newTable.querySelector(".courseCode");
   const topicInput = newTable.querySelector(".courseTopic");
+
+  // Initialize Lucide icons if available
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
 
   attachEventListeners(newTable);
 
