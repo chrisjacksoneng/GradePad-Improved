@@ -302,7 +302,7 @@
                 if (btn) {
                     btn.innerHTML = `${googleSvg}<span>Sign in</span>`;
                     btn.href = '#';
-                    btn.removeEventListener('click', signOutHandler);
+                    btn.removeEventListener('click', toggleConfirmHandler);
                     btn.removeEventListener('click', signInClickHandler);
                     btn.addEventListener('click', signInClickHandler);
                 }
