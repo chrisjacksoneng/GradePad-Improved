@@ -2,20 +2,21 @@ import { defineConfig } from 'vite'
 import legacy from '@vitejs/plugin-legacy'
 
 export default defineConfig({
-  root: './gradepad',
+  root: './',
   plugins: [
     legacy({
       targets: ['defaults', 'not IE 11']
     })
   ],
   build: {
-    outDir: '../dist',
+    outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: true,
     rollupOptions: {
       input: {
         main: './gradepad/index.html',
-        grades: './gradepad/grades.html'
+        grades: './gradepad/grades.html',
+        features: './gradepad/features.html'
       }
     }
   },
