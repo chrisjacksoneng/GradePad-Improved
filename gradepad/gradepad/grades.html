@@ -191,14 +191,15 @@
     <button id="addTable">+ Course</button>
   </div>
 
-  <script type="module" src="jsScripts/firebase.js"></script>
+  <!-- Firebase removed; will be re-added in new setup -->
   <script type="module" src="jsScripts/auth.js"></script>
   <script type="module" src="jsScripts/main.js"></script>
   <script type="module" src="jsScripts/db.js"></script>
 
     <script type="module">
-import { auth } from "./jsScripts/firebase.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+// Firebase removed; placeholder until re-integrated
+const auth = null;
+const onAuthStateChanged = (_auth, cb) => cb(null);
 import { loadCourses } from "./jsScripts/db.js";
 import { createNewTable, attachEventListeners } from "./jsScripts/tableOps.js";
 
