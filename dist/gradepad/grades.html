@@ -3,45 +3,318 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap">
-  <link rel="icon" type="image/png" href="/assets/gradepadlogo-CEWE7vau.png">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap">
+  <style>
+    /* Ensure navigation is at the top */
+    .top-header {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      z-index: 1000 !important;
+      background-color: #000000 !important;
+      border-bottom: 1px solid #ffffff !important;
+    }
+    
+    /* Add padding to body to account for fixed header */
+    body {
+      padding-top: 0px !important;
+    }
+    
+    /* Ensure header styles work */
+    .header-left, .header-nav, .header-right {
+      display: flex !important;
+    }
+    
+    .top-header {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+    }
+    
+    .header-center {
+      position: absolute !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      display: flex !important;
+      align-items: center !important;
+    }
+    
+    .gpa-display {
+      background-color: rgba(255, 255, 255, 0.1) !important;
+      color: white !important;
+      padding: 8px 16px !important;
+      border-radius: 20px !important;
+      font-weight: 600 !important;
+      font-size: 1rem !important;
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    }
+    
+    /* Make all table rows the same color */
+    tr:nth-child(odd) td,
+    tr:nth-child(even) td {
+      background-color: #ffffff !important;
+    }
+    
+    /* Add lines between table rows (excluding course header) */
+    tr:not(:first-child):not(:last-child) td {
+      border-bottom: 1px solid #e0e0e0 !important;
+    }
+    
+    /* Add border to second-to-last row if it's not the course header */
+    tr:nth-last-child(2) td {
+      border-bottom: 1px solid #e0e0e0 !important;
+    }
+    
+    /* Align table with calculator logo */
+    .table-container {
+      margin-left: 20px !important;
+    }
+    
+    /* Update row highlighting color when dragging */
+    tr.dragging {
+      outline: 2px solid #4a90e2 !important;
+    }
+    
+    .header-nav a, .login-link, .cta-button {
+      color: #ffffff !important;
+      text-decoration: none !important;
+    }
+    
+    /* Style delete and parse syllabus buttons to match page format */
+    .deleteButton, .syllabusButton {
+      background: transparent !important;
+      color: #ffffff !important;
+      border: none !important;
+      border-radius: 8px !important;
+      padding: 10px 16px !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      cursor: pointer !important;
+      transition: all 0.3s ease !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.5px !important;
+      display: inline-block !important;
+      visibility: visible !important;
+    }
+    
+    /* Ensure syllabus button is visible */
+    .syllabusButton {
+      display: inline-block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      position: relative !important;
+      z-index: 10 !important;
+    }
+    
+    /* Style the parse syllabus modal */
+    .syllabusModal.modal {
+      background-color: rgba(0, 0, 0, 0.8) !important;
+      backdrop-filter: blur(5px) !important;
+    }
+    
+    .syllabusModal .modal-content {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+      border-radius: 16px !important;
+      padding: 30px !important;
+      max-width: 800px !important;
+      width: 95% !important;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    .syllabusModal .close {
+      color: #ffffff !important;
+      font-size: 24px !important;
+      font-weight: bold !important;
+      background: rgba(255, 255, 255, 0.1) !important;
+      border-radius: 50% !important;
+      width: 40px !important;
+      height: 40px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      cursor: pointer !important;
+      transition: all 0.3s ease !important;
+    }
+    
+    .syllabusModal .close:hover {
+      background: rgba(255, 255, 255, 0.2) !important;
+      transform: scale(1.1) !important;
+    }
+    
+    .syllabusModal textarea {
+      background: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      border-radius: 8px !important;
+      padding: 15px !important;
+      color: #ffffff !important;
+      font-size: 14px !important;
+      line-height: 1.5 !important;
+      resize: vertical !important;
+      min-height: 200px !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    
+    .syllabusModal textarea::placeholder {
+      color: rgba(255, 255, 255, 0.5) !important;
+    }
+    
+    .syllabusModal .modal-content {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 15px !important;
+    }
+    
+    .syllabusModal .modal-footer {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      margin-top: 15px !important;
+    }
+    
+    .syllabusModal .parseSyllabusButton {
+      background: #ffffff !important;
+      color: #000000 !important;
+      border: 1px solid #e0e0e0 !important;
+      border-radius: 8px !important;
+      padding: 12px 24px !important;
+      font-size: 14px !important;
+      font-weight: 600 !important;
+      cursor: pointer !important;
+      transition: all 0.3s ease !important;
+      margin: 0 !important;
+    }
+    
+    .syllabusModal .parseSyllabusButton:hover {
+      background: #f5f5f5 !important;
+      transform: translateY(-2px) !important;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+    }
+    
+    .syllabusModal .syllabusNote {
+      color: rgba(255, 255, 255, 0.7) !important;
+      font-size: 12px !important;
+      margin: 0 !important;
+      font-style: italic !important;
+    }
+    
+    .deleteButton:hover, .syllabusButton:hover {
+      background: rgba(255, 255, 255, 0.1) !important;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.4) !important;
+      transform: translateY(-2px) !important;
+    }
+    
+    .deleteButton:active, .syllabusButton:active {
+      transform: translateY(0px) !important;
+      background: rgba(255, 255, 255, 0.05) !important;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.2) !important;
+    }
+    
+    /* Change course code and topic text to white */
+    .courseCode, .courseTopic {
+      color: #ffffff !important;
+    }
+    
+    /* Ensure input text is white with higher specificity */
+    input.courseCode, input.courseTopic {
+      color: #ffffff !important;
+    }
+    
+    /* Override any existing color styles */
+    .courseCode input, .courseTopic input,
+    .titleBox input.courseCode, .titleBox input.courseTopic {
+      color: #ffffff !important;
+    }
+    
+    /* Fix course units dropdown text color */
+    select, .courseUnits, .unitsDropdown {
+      color: #000000 !important;
+      background-color: transparent !important;
+    }
+    
+    /* Fix dropdown options */
+    select option, .courseUnits option, .unitsDropdown option {
+      color: #000000 !important;
+      background-color: transparent !important;
+    }
+    
+    /* Remove dots/periods from mark column inputs */
+    input[type="number"], input.markInput, td input, 
+    input[type="text"], input[placeholder*="Mark"], 
+    td:nth-child(3) input {
+      appearance: none !important;
+      -moz-appearance: textfield !important;
+      background-image: none !important;
+      background-position: none !important;
+      background-repeat: no-repeat !important;
+      background-size: 0 !important;
+      position: relative !important;
+    }
+    
+    /* Remove any pseudo-elements that might be creating dots */
+    input::after, input::before {
+      display: none !important;
+      content: none !important;
+    }
+    
+    /* Remove spinner arrows from number inputs */
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none !important;
+      margin: 0 !important;
+      display: none !important;
+    }
+    
+    .brand-name {
+      font-family: "Playfair Display", serif !important;
+      font-style: italic !important;
+      font-size: 2rem !important;
+      color: #ffffff !important;
+      background: transparent !important;
+      border: none !important;
+      outline: none !important;
+      padding: 0 !important;
+    }
+    
+    .brand-name::placeholder {
+      color: grey !important;
+    }
+    
+    .header-left a {
+      text-decoration: none !important;
+      display: flex !important;
+      align-items: center !important;
+    }
+    
+    .header-left a:hover {
+      opacity: 0.7 !important;
+    }
+  </style>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><rect x=%224%22 y=%222%22 width=%2216%22 height=%2220%22 rx=%222%22/><path d=%22M8 6h8%22/><circle cx=%228%22 cy=%2210%22 r=%221%22/><circle cx=%2210%22 cy=%2210%22 r=%221%22/><circle cx=%2212%22 cy=%2210%22 r=%221%22/><circle cx=%228%22 cy=%2213%22 r=%221%22/><circle cx=%2210%22 cy=%2213%22 r=%221%22/><circle cx=%2212%22 cy=%2213%22 r=%221%22/><circle cx=%228%22 cy=%2216%22 r=%221%22/><circle cx=%2210%22 cy=%2216%22 r=%221%22/><circle cx=%2212%22 cy=%2216%22 r=%221%22/><rect x=%2214%22 y=%2210%22 width=%224%22 height=%227%22 rx=%221%22/></svg>">
   <title>GradePad</title>
-  <script type="module" crossorigin src="/assets/grades-CGSoUlBm.js"></script>
-  <link rel="modulepreload" crossorigin href="/assets/auth-CNSAiOnX.js">
-  <link rel="stylesheet" crossorigin href="/assets/auth-C0RN3ZWk.css">
-  <script type="module">import.meta.url;import("_").catch(()=>1);(async function*(){})().next();window.__vite_is_modern_browser=true</script>
-  <script type="module">!function(){if(window.__vite_is_modern_browser)return;console.warn("vite: loading legacy chunks, syntax error above and the same error below should be ignored");var e=document.getElementById("vite-legacy-polyfill"),n=document.createElement("script");n.src=e.src,n.onload=function(){System.import(document.getElementById('vite-legacy-entry').getAttribute('data-src'))},document.body.appendChild(n)}();</script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script type="module" crossorigin src="/assets/grades-CrLt-lvh.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/landing-HWZbb-58.js">
+  <link rel="stylesheet" crossorigin href="/assets/landing-DGyFuLp7.css">
+  <link rel="stylesheet" crossorigin href="/assets/grades-C1lJo_ED.css">
 </head>
 <body>
-  <div class="top">
-    <div class="topBar">
-        <div id="mySidenav" class="sidenav">
-            <a href="index.html">Home Page</a>
-            <a href="#">My Profile</a>
-            <a href="#">Settings</a>
-            <a href="#">Report an Issue</a>
-        </div>
-      <span id="menuIcon" style="font-size:30px; cursor:pointer" onclick="toggleNav()">&#9776;</span>
+  <!-- Top Navigation Bar -->
+  <header class="top-header">
+    <div class="header-left">
       <a href="index.html">
-        <img src="/assets/gradepadlogo-CEWE7vau.png" class="logo">
+        <i data-lucide="calculator" style="width: 32px; height: 32px; color: white; margin-right: 10px;"></i>
       </a>
-      <h1 class="gradePadWriting">GradePad</h1>
-      <div class="rightControls">
-        <div class="googleAuth">
-          <button id="loginBtn" style="display: flex; align-items: center; gap: 8px;">
-            <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo" style="width:18px;">
-            Sign in with Google
-          </button>          
-          <div id="userDropdownContainer" class="user-dropdown hidden">
-            <button id="userNameDisplay"></button>
-            <div id="dropdownMenu" class="dropdown-menu hidden">
-              <button id="signOutBtn">Sign Out</button>
-            </div>
-          </div>
-        </div>
-        <button id="settingsIcon">⛭</button>
-      </div>
+      <input type="text" class="brand-name" id="semesterName" placeholder="Insert semester name">
     </div>
+    <div class="header-center">
+      <span id="navGpa" class="gpa-display">GPA: 0.00</span>
+            </div>
+    <div class="header-right">
+          </div>
+  </header>
       <div id="settingsModal" class="modal">
         <div class="modal-content">
           <span class="close">&times;</span>
@@ -60,48 +333,6 @@
     </div>
   </div>
 
-  <div id="page-summary" class="titleRow">
-    <input type="text" placeholder="Page Title (e.g. Spring 2025)" id="page-title" readonly>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-          const pageTitleInput = document.getElementById("page-title");
-        
-          // Function to update width based on content.
-          function updateWidth() {
-            // Create a temporary span element to measure text width.
-            const tempSpan = document.createElement("span");
-            // Inherit font styles from the input.
-            const computedStyle = window.getComputedStyle(pageTitleInput);
-            tempSpan.style.fontFamily = computedStyle.fontFamily;
-            tempSpan.style.fontSize = computedStyle.fontSize;
-            tempSpan.style.visibility = "hidden";
-            tempSpan.style.whiteSpace = "nowrap";
-            // Use the input's current value.
-            tempSpan.textContent = pageTitleInput.value || "";
-            document.body.appendChild(tempSpan);
-            // Calculate new width plus a small buffer.
-            const newWidth = tempSpan.offsetWidth + 20;
-            document.body.removeChild(tempSpan);
-            // Update the input's width.
-            pageTitleInput.style.width = newWidth + "px";
-          }
-        
-          // Update width when user types.
-          pageTitleInput.addEventListener("input", updateWidth);
-        
-          // Read query parameters from URL.
-          const params = new URLSearchParams(window.location.search);
-          const semesterName = params.get("semesterName");
-          if (semesterName) {
-            pageTitleInput.value = semesterName;
-            updateWidth(); // Adjust width based on the new value.
-          }
-        });
-        </script>
-        
-        
-    <span id="current-gpa">Term GPA: 0.00</span>
-  </div>
 
   <div class="table-container">
     <div class="table-wrapper">
@@ -111,16 +342,18 @@
             <div class="courseContainer">
               <div class="titleBox">
                 <input type="text" placeholder="Insert Course Code" class="courseCode">
-                <button class="deleteButton" title="Delete Table">🗑️</button>
+                <button class="deleteButton" title="Delete Table"><i data-lucide="trash-2" style="width: 20px; height: 20px;"></i></button>
                 <button class="fullScreen" title="Collapse Table">←</button>
                 <input type="text" placeholder="Insert Course Topic" class="courseTopic">
-                <button class="syllabusButton" title="Parse Syllabus">📄</button>
+                <button class="syllabusButton" title="Parse Syllabus"><i data-lucide="file-text" style="width: 20px; height: 20px;"></i></button>
                 <div class="syllabusModal modal">
                   <div class="modal-content" class="syllabusmodalcontent">
                     <span class="close">&times;</span>
                     <textarea class="syllabusTextbox" placeholder="Paste the course syllabus here..."></textarea>
+                    <div class="modal-footer">
+                      <p class="syllabusNote">Note: Syllabus parsing is not always 100% accurate. Please double check all values match the syllabus.</p>
                     <button class="parseSyllabusButton">Parse Syllabus</button>
-                    <p class="syllabusNote">Note: Syllabus parsing is not always 100% accurate. Please double check all values match the syllabus.</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -194,10 +427,481 @@
     </div>
     <button id="addTable">+ Course</button>
   </div>
-
-
-  <script nomodule>!function(){var e=document,t=e.createElement("script");if(!("noModule"in t)&&"onbeforeload"in t){var n=!1;e.addEventListener("beforeload",(function(e){if(e.target===t)n=!0;else if(!e.target.hasAttribute("nomodule")||!n)return;e.preventDefault()}),!0),t.type="module",t.src=".",e.head.appendChild(t),t.remove()}}();</script>
-  <script nomodule crossorigin id="vite-legacy-polyfill" src="/assets/polyfills-legacy-Bm7qw8y8.js"></script>
-  <script nomodule crossorigin id="vite-legacy-entry" data-src="/assets/grades-legacy-DvJlgr3r.js">System.import(document.getElementById('vite-legacy-entry').getAttribute('data-src'))</script>
+
+
+    
+    <script>
+      // Initialize Lucide icons
+      lucide.createIcons();
+      
+      // Update semester name in header
+      function updateSemesterName() {
+        // Try to get semester name from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const semesterName = urlParams.get('semester');
+        
+        if (semesterName) {
+          document.getElementById('semesterName').textContent = semesterName;
+        } else {
+          // Try to get from localStorage or default
+          const storedSemester = localStorage.getItem('currentSemesterName');
+          if (storedSemester) {
+            document.getElementById('semesterName').textContent = storedSemester;
+          } else {
+            // Default fallback - you can change this to whatever semester name you want
+            document.getElementById('semesterName').textContent = 'Fall 2023';
+          }
+        }
+      }
+      
+      // Update GPA in navigation header
+      function updateNavGpa() {
+        const currentGpaElement = document.getElementById('current-gpa');
+        const navGpaElement = document.getElementById('navGpa');
+        
+        if (currentGpaElement && navGpaElement) {
+          // Extract GPA value from existing element
+          const gpaText = currentGpaElement.textContent;
+          const gpaMatch = gpaText.match(/(\d+\.\d+)/);
+          
+          if (gpaMatch) {
+            navGpaElement.textContent = `GPA: ${gpaMatch[1]}`;
+          } else {
+            navGpaElement.textContent = 'GPA: 0.00';
+          }
+        }
+      }
+      
+      // Call on page load
+      updateSemesterName();
+      updateNavGpa();
+      
+      // Set up observer to watch for GPA changes
+      const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          if (mutation.target.id === 'current-gpa') {
+            updateNavGpa();
+          }
+        });
+      });
+      
+      // Start observing the GPA element for changes
+      const gpaElement = document.getElementById('current-gpa');
+      if (gpaElement) {
+        observer.observe(gpaElement, { childList: true, characterData: true, subtree: true });
+      }
+    </script>
+    
+    <!-- Groq AI Integration -->
+    <script>
+      // Test function to list available models
+      async function listAvailableModels() {
+        try {
+          console.log('Testing API connection and listing available models...');
+          
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${CONFIG.GEMINI_API_KEY}`);
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error listing models:', response.status, errorText);
+            return;
+          }
+          
+          const data = await response.json();
+          console.log('Available models:', data);
+          
+          if (data.models) {
+            console.log('Supported model names:');
+            data.models.forEach(model => {
+              console.log('- ' + model.name);
+            });
+          }
+          
+        } catch (error) {
+          console.error('Error testing API:', error);
+        }
+      }
+      
+      // Call this function to test the API
+      // listAvailableModels();
+      
+      // Initialize Groq AI
+      function initializeGroq() {
+        if (!CONFIG || !CONFIG.GROQ_API_KEY || CONFIG.GROQ_API_KEY === "YOUR_API_KEY_HERE") {
+          console.error('Please set your Groq API key in config.js');
+          console.log('Get your free API key at: https://console.groq.com/');
+          return false;
+        }
+        return true;
+      }
+      
+      // Parse syllabus using Groq AI via fetch API
+      window.parseSyllabusWithAI = async function(syllabusText) {
+        if (!initializeGroq()) {
+          throw new Error('Groq AI not properly configured');
+        }
+        
+        const prompt = `Parse this course syllabus and extract ONLY the exact information provided.
+
+Syllabus:
+${syllabusText}
+
+Return ONLY a JSON object in this format:
+{
+  "courseCode": "CS 101",
+  "courseTitle": "Introduction to Computer Science",
+  "assignments": [
+    {"name": "Midterm Exam", "weight": 30, "dueDate": "Mar 15"},
+    {"name": "Final Project", "weight": 40, "dueDate": "Apr 20"}
+  ]
+}
+
+CRITICAL RULES:
+- Extract ONLY the exact information from the syllabus
+- Do NOT create, modify, summarize, or reorder assignments
+- Keep the exact order as listed in the syllabus
+- Extract course code exactly as written (e.g., "SYDE 199")
+- Extract course title exactly as written
+- For dates, use format "MMM DD" (e.g., "Jan 16", "Feb 13")
+- If date is "Ongoing" or similar, keep as "Ongoing"
+- Weight percentages: convert "2.5%" to 2.5, "20%" to 20, etc.
+- Return ONLY the JSON object, no explanations, no summaries`;
+        
+        try {
+          console.log('Making Groq API request...');
+          
+          const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${CONFIG.GROQ_API_KEY}`
+            },
+            body: JSON.stringify({
+              model: 'llama-3.1-8b-instant',
+              messages: [
+                {
+                  role: 'system',
+                  content: 'You are a helpful assistant that parses course syllabi and returns structured JSON data.'
+                },
+                {
+                  role: 'user',
+                  content: prompt
+                }
+              ],
+              temperature: 0.1,
+              max_tokens: 2048,
+            })
+          });
+          
+          console.log('API Response status:', response.status);
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('API Error Response:', errorText);
+            throw new Error(`API request failed: ${response.status} ${response.statusText}. Details: ${errorText}`);
+          }
+          
+          const data = await response.json();
+          console.log('API Response data:', data);
+          
+          if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+            throw new Error('Invalid API response format');
+          }
+          
+          const text = data.choices[0].message.content;
+          
+          console.log('Raw AI response:', text);
+          
+          // Clean up the response (remove any markdown formatting)
+          let cleanedText = text.replace(/```json\n?|\n?```/g, '').trim();
+          
+          // Find the FIRST complete JSON array (not everything from first [ to last ])
+          // Look for a JSON code block or the first complete array
+          let jsonToParse = '';
+          
+          // Try to find JSON in a code block first (could be object or array)
+          const codeBlockMatch = text.match(/```json\s*(\{[\s\S]*?\}|\[[\s\S]*?\])\s*```/);
+          if (codeBlockMatch && codeBlockMatch[1]) {
+            jsonToParse = codeBlockMatch[1];
+            console.log('Found JSON in code block');
+          } else {
+            // If no code block, find the first balanced JSON (object or array)
+            const firstChar = cleanedText.indexOf('{');
+            const firstBracket = cleanedText.indexOf('[');
+            
+            // Check if it's an object
+            if (firstChar !== -1 && (firstBracket === -1 || firstChar < firstBracket)) {
+              let depth = 0;
+              let endChar = -1;
+              for (let i = firstChar; i < cleanedText.length; i++) {
+                if (cleanedText[i] === '{') depth++;
+                if (cleanedText[i] === '}') depth--;
+                if (depth === 0) {
+                  endChar = i;
+                  break;
+                }
+              }
+              if (endChar !== -1 && endChar > firstChar) {
+                jsonToParse = cleanedText.substring(firstChar, endChar + 1);
+                console.log('Found first balanced JSON object');
+              }
+            } else if (firstBracket !== -1) {
+              // Check if it's an array
+              let depth = 0;
+              let endBracket = -1;
+              for (let i = firstBracket; i < cleanedText.length; i++) {
+                if (cleanedText[i] === '[') depth++;
+                if (cleanedText[i] === ']') depth--;
+                if (depth === 0) {
+                  endBracket = i;
+                  break;
+                }
+              }
+              if (endBracket !== -1 && endBracket > firstBracket) {
+                jsonToParse = cleanedText.substring(firstBracket, endBracket + 1);
+                console.log('Found first balanced JSON array');
+              }
+            }
+          }
+          
+          console.log('Extracted JSON:', jsonToParse.substring(0, 200) + '...');
+          
+          const parsed = JSON.parse(jsonToParse);
+          console.log('Parsed result:', parsed);
+          
+          return parsed;
+        } catch (error) {
+          console.error('Error parsing syllabus:', error);
+          throw new Error('Failed to parse syllabus: ' + error.message);
+        }
+      };
+      
+      // Add assignment row to table
+      function addAssignmentRow(name, weight, dueDate) {
+        // Find the table and add a new row
+        const table = document.querySelector('table');
+        if (!table) return;
+        
+        // Find the last row before the final grade row
+        const rows = table.querySelectorAll('tr');
+        let insertBeforeRow = null;
+        
+        // Look for existing assignment rows (not header, not final grade)
+        for (let i = rows.length - 1; i >= 0; i--) {
+          const row = rows[i];
+          if (row.id === 'finalGradeRow') {
+            insertBeforeRow = row;
+            break;
+          }
+        }
+        
+        // Create new row
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+          <td><input type="text" placeholder="Evaluation" value="${name}"></td>
+          <td><input type="text" class="dueInput" value="${dueDate}"></td>
+          <td><input type="number" placeholder="Mark" min="0" max="100"></td>
+          <td><input type="number" placeholder="Weight" min="0" max="100" value="${weight}"></td>
+          <td><span class="lostOutput">—</span></td>
+          <td class="actionsColumn">
+            <button class="addRowBtn" title="Add Row">+</button>
+            <button class="removeRowBtn" title="Remove Row">-</button>
+            <button class="moveRowBtn" title="Move Row">&#9776;</button>
+          </td>
+        `;
+        
+        // Insert the new row
+        if (insertBeforeRow) {
+          insertBeforeRow.parentNode.insertBefore(newRow, insertBeforeRow);
+        } else {
+          table.appendChild(newRow);
+        }
+        
+        // Reinitialize event listeners for the new row
+        if (typeof attachEventListeners === 'function') {
+          attachEventListeners(table.closest('.table-wrapper'));
+        }
+      }
+      
+      // Handle parse syllabus button click
+      document.addEventListener('DOMContentLoaded', function() {
+        const parseButton = document.querySelector('.parseSyllabusButton');
+        if (parseButton) {
+          parseButton.addEventListener('click', async function() {
+            const syllabusText = document.querySelector('.syllabusTextbox').value.trim();
+            
+            if (!syllabusText) {
+              alert('Please enter syllabus text first');
+              return;
+            }
+            
+            // Show loading state
+            parseButton.textContent = 'Parsing...';
+            parseButton.disabled = true;
+            
+            try {
+              const parsedData = await parseSyllabusWithAI(syllabusText);
+              
+              // Extract course info and assignments (handle both old array and new object format)
+              const courseCode = parsedData.courseCode || "";
+              const courseTitle = parsedData.courseTitle || "";
+              const assignments = parsedData.assignments || parsedData; // Fallback to old format
+              
+              // Fill in course code and title fields
+              const courseCodeInput = document.querySelector('.courseCode');
+              const courseTitleInput = document.querySelector('.courseTopic');
+              
+              if (courseCodeInput && courseCode) {
+                courseCodeInput.value = courseCode;
+              }
+              
+              if (courseTitleInput && courseTitle) {
+                courseTitleInput.value = courseTitle;
+              }
+              
+              // Clear existing data rows first (keep only headers and final grade row)
+              const table = document.querySelector('table');
+              if (table) {
+                const existingRows = table.querySelectorAll("tr:not(:first-child, .columnTitles, #finalGradeRow)");
+                existingRows.forEach(row => row.remove());
+              }
+              
+              // Add each assignment to the table
+              console.log('Adding assignments:', assignments);
+              assignments.forEach((assignment, index) => {
+                console.log(`Adding assignment ${index}:`, assignment);
+                addAssignmentRow(
+                  assignment.name || 'Assignment',
+                  assignment.weight || 0,
+                  assignment.dueDate || 'TBD'
+                );
+              });
+              
+              // Clear the textarea
+              document.querySelector('.syllabusTextbox').value = '';
+              
+              // Close modal - try multiple selectors
+              let modal = document.querySelector('.syllabusModal');
+              if (!modal) {
+                modal = document.querySelector('.modal');
+              }
+              if (!modal) {
+                modal = document.querySelector('[class*="modal"]');
+              }
+              
+              if (modal) {
+                modal.style.display = 'none';
+                modal.classList.remove('show');
+                console.log('Modal closed successfully');
+              } else {
+                console.log('Modal not found, trying to hide by class');
+                // Try hiding all elements with modal class
+                const modals = document.querySelectorAll('.modal');
+                modals.forEach(m => m.style.display = 'none');
+              }
+              
+              // Successfully parsed - no popup needed
+              
+              // Force close modal with additional methods
+              setTimeout(() => {
+                const allModals = document.querySelectorAll('.modal, .syllabusModal');
+                allModals.forEach(m => {
+                  m.style.display = 'none';
+                  m.style.visibility = 'hidden';
+                  m.classList.remove('show', 'active');
+                });
+              }, 100);
+              
+            } catch (error) {
+              console.log('AI parsing failed, falling back to local parsing:', error.message);
+              
+              // Fall back to local parsing
+              try {
+                const lines = syllabusText.trim().split("\n");
+                const rows = [];
+
+                let courseCode = "";
+                let courseTitle = "";
+                const saveLocalCopyIndex = lines.findIndex((line) => line.includes("Save a Local Copy"));
+                if (saveLocalCopyIndex !== -1) {
+                  courseCode = lines[saveLocalCopyIndex + 1] || "";
+                  courseTitle = lines[saveLocalCopyIndex + 3] || "";
+                }
+
+                const courseCodeInput = document.querySelector(".courseCode");
+                const courseTitleInput = document.querySelector(".courseTopic");
+
+                if (courseCodeInput) courseCodeInput.value = courseCode;
+                if (courseTitleInput) courseTitleInput.value = courseTitle;
+
+                for (const line of lines) {
+                  const parts = line.trim().split(/\s{2,}|\t+/);
+                  if (parts.length >= 2) {
+                    const name = parts[0];
+                    const weight = parseFloat(parts[1]);
+                    if (!isNaN(weight)) {
+                      rows.push({ name, weight });
+                    }
+                  }
+                }
+
+                const table = document.querySelector('table');
+                if (table) {
+                  const existingRows = table.querySelectorAll("tr:not(:first-child, .columnTitles, #finalGradeRow)");
+                  existingRows.forEach(row => row.remove());
+
+                  rows.forEach(({ name, weight }) => {
+                    addAssignmentRow(name, weight, 'TBD');
+                  });
+                }
+                
+                console.log('Local parsing completed successfully');
+                
+                // Clear the textarea and close modal
+                document.querySelector('.syllabusTextbox').value = '';
+                
+                // Close modal - try multiple selectors
+                let modal = document.querySelector('.syllabusModal');
+                if (!modal) {
+                  modal = document.querySelector('.modal');
+                }
+                if (!modal) {
+                  modal = document.querySelector('[class*="modal"]');
+                }
+                
+                if (modal) {
+                  modal.style.display = 'none';
+                  modal.classList.remove('show');
+                  console.log('Modal closed successfully');
+                } else {
+                  console.log('Modal not found, trying to hide by class');
+                  // Try hiding all elements with modal class
+                  const modals = document.querySelectorAll('.modal');
+                  modals.forEach(m => m.style.display = 'none');
+                }
+                
+                // Force close modal with additional methods
+                setTimeout(() => {
+                  const allModals = document.querySelectorAll('.modal, .syllabusModal');
+                  allModals.forEach(m => {
+                    m.style.display = 'none';
+                    m.style.visibility = 'hidden';
+                    m.classList.remove('show', 'active');
+                  });
+                }, 100);
+                
+              } catch (localError) {
+                console.error('Both AI and local parsing failed:', localError);
+                alert('Error parsing syllabus: ' + localError.message);
+              }
+            } finally {
+              // Reset button
+              parseButton.textContent = 'Parse Syllabus';
+              parseButton.disabled = false;
+            }
+          });
+        }
+      });
+    </script>
 </body>
 </html>

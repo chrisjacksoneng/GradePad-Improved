@@ -4,9 +4,10 @@ import legacy from '@vitejs/plugin-legacy'
 export default defineConfig({
   root: './',
   plugins: [
-    legacy({
-      targets: ['defaults', 'not IE 11']
-    })
+    // Temporarily disabled legacy plugin due to build errors
+    // legacy({
+    //   targets: ['defaults', 'not IE 11']
+    // })
   ],
   build: {
     outDir: 'dist',
@@ -16,7 +17,9 @@ export default defineConfig({
       input: {
         main: './gradepad/index.html',
         grades: './gradepad/grades.html',
-        features: './gradepad/features.html'
+        features: './gradepad/features.html',
+        about: './gradepad/about.html',
+        support: './gradepad/support.html'
       }
     }
   },
