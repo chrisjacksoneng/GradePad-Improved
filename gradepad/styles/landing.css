@@ -135,7 +135,7 @@ body:has(.about-hero) {
   width: 100%;
   z-index: 2;
   text-align: left;
-  margin-left: -700px;
+  margin-left: -1000px;
 }
 
 .hero-title {
