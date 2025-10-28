@@ -3,7 +3,7 @@
 // 2) Ensure Google provider is enabled in Firebase Console
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js';
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js';
 import { firebaseConfig } from './firebase-config.js';
 
 // moved to gitignored firebase-config.js (see firebase-config.example.js)
@@ -19,6 +19,10 @@ export async function signInWithGoogle() {
 
 export function onAuthChange(callback) {
   return onAuthStateChanged(auth, callback);
+}
+
+export async function signOutUser() {
+  await signOut(auth);
 }
 
 
