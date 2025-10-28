@@ -7,6 +7,18 @@
     <link rel="stylesheet" href="styles/features.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22white%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><rect x=%224%22 y=%222%22 width=%2216%22 height=%2220%22 rx=%222%22/><path d=%22m8 6h8%22/><circle cx=%228%22 cy=%2210%22 r=%221%22/><circle cx=%2210%22 cy=%2210%22 r=%221%22/><circle cx=%2212%22 cy=%2210%22 r=%221%22/><circle cx=%228%22 cy=%2213%22 r=%221%22/><circle cx=%2210%22 cy=%2213%22 r=%221%22/><circle cx=%2212%22 cy=%2213%22 r=%221%22/><circle cx=%228%22 cy=%2216%22 r=%221%22/><circle cx=%2210%22 cy=%2216%22 r=%221%22/><circle cx=%2212%22 cy=%2216%22 r=%221%22/><rect x=%2214%22 y=%2210%22 width=%224%22 height=%227%22 rx=%221%22/></svg>">
     <title>Support - GradePad</title>
+    <style>
+        select {
+            background-color: #000000 !important;
+            color: #ffffff !important;
+            border: 1px solid #ffffff !important;
+        }
+        
+        select option {
+            background-color: #000000 !important;
+            color: #ffffff !important;
+        }
+    </style>
 </head>
 <body>
     <!-- Top Navigation Bar -->
@@ -40,16 +52,6 @@
             
             <div class="faq-item">
                 <div class="faq-question" onclick="toggleFAQ(this)">
-                    <h3>How do I get started with GradePad?</h3>
-                    <i data-lucide="chevron-down" class="faq-icon"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>Simply click "Get Started" and create your account. You can then add your courses and start tracking your grades immediately. No setup required!</p>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question" onclick="toggleFAQ(this)">
                     <h3>Is my data secure?</h3>
                     <i data-lucide="chevron-down" class="faq-icon"></i>
                 </div>
@@ -80,16 +82,6 @@
 
             <div class="faq-item">
                 <div class="faq-question" onclick="toggleFAQ(this)">
-                    <h3>Can I export my grade data?</h3>
-                    <i data-lucide="chevron-down" class="faq-icon"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>This feature is in the works but not ready yet. We're working on adding the ability to export your grade data in PDF or CSV formats for backup, sharing with advisors, or analyzing in external tools.</p>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question" onclick="toggleFAQ(this)">
                     <h3>What grading systems are supported?</h3>
                     <i data-lucide="chevron-down" class="faq-icon"></i>
                 </div>
@@ -102,11 +94,11 @@
         <!-- Getting Started Section -->
         <div class="content-section">
             <h2>Getting Started Guide</h2>
-            <p>New to GradePad? Follow these simple steps to set up your account and start tracking your grades:</p>
+            <p>You can use GradePad immediately without signing up for a one-time use, but your data won't be saved. To save your data and access it from any device, sign up with Google.</p>
             
             <div class="guide-step">
                 <h3>1. Create Your Account</h3>
-                <p>Sign up with your email address and create a secure password. No personal information required beyond what you're comfortable sharing.</p>
+                <p>Sign up with Google to save your data. No personal information required beyond what you're comfortable sharing. You can also use without signing up for one-time use, but your information won't be saved.</p>
             </div>
 
             <div class="guide-step">
@@ -116,7 +108,7 @@
 
             <div class="guide-step">
                 <h3>3. Set Up Assignments</h3>
-                <p>Add your assignments, tests, and projects with their due dates and point values. GradePad will help you stay organized.</p>
+                <p>Add your assignments, tests, and projects with their due dates and point values. GradePad will help you stay organized. You can also use the parse syllabus feature to automatically fill in all your assignments from your course syllabus.</p>
             </div>
 
             <div class="guide-step">
@@ -167,11 +159,11 @@
                 <div class="contact-methods">
                     <div class="contact-method">
                         <h4>Email Support</h4>
-                        <a href="mailto:support@gradepad.com">support@gradepad.com</a>
+                        <a href="mailto:gradepadca@gmail.com">gradepadca@gmail.com</a>
                     </div>
                     <div class="contact-method">
                         <h4>Feature Requests</h4>
-                        <a href="mailto:feedback@gradepad.com">feedback@gradepad.com</a>
+                        <a href="mailto:gradepadca@gmail.com">gradepadca@gmail.com</a>
                     </div>
                 </div>
             </div>
@@ -231,13 +223,13 @@
             const message = formData.get('message');
             
             // Create mailto link
-            const mailtoLink = `mailto:support@gradepad.com?subject=${encodeURIComponent(subject + ' - ' + name)}&body=${encodeURIComponent('Name: ' + name + '\nEmail: ' + email + '\n\nMessage:\n' + message)}`;
+            const mailtoLink = `mailto:gradepadca@gmail.com?subject=${encodeURIComponent(subject + ' - ' + name)}&body=${encodeURIComponent('Name: ' + name + '\nEmail: ' + email + '\n\nMessage:\n' + message)}`;
             
             // Open email client
             window.location.href = mailtoLink;
             
             // Show success message
-            alert('Your email client should open with your message. If it doesn\'t, please email us directly at support@gradepad.com');
+            alert('Your email client should open with your message. If it doesn\'t, please email us directly at gradepadca@gmail.com');
         }
     </script>
 </body>
