@@ -213,17 +213,49 @@
 
         // Keep named handlers so we can swap them when signed in/out
         const signInClickHandler = (e) => { e.preventDefault(); doSignIn(); };
-        const signOutHandler = async (e) => {
-            e.preventDefault();
+        // Lightweight confirm: first click reveals a tiny confirm menu; second click signs out
+        let confirmVisible = false;
+        const ensureConfirmMenu = () => {
+            let confirmEl = document.getElementById('gpSignOutConfirm');
+            if (!confirmEl && btn) {
+                confirmEl = document.createElement('div');
+                confirmEl.id = 'gpSignOutConfirm';
+                confirmEl.style.cssText = 'position:absolute;top:100%;right:0;background:#0b0b0b;color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:8px;min-width:160px;z-index:1000;display:none;';
+                const cta = document.createElement('button');
+                cta.textContent = 'Sign out';
+                cta.style.cssText = 'width:100%;background:#ffffff;border:1px solid rgba(0,0,0,0.08);color:#1f2937;padding:10px 14px;border-radius:6px;cursor:pointer;font-weight:600;';
+                cta.addEventListener('click', async (ev) => {
+                    ev.preventDefault();
+                    await doSignOut();
+                });
+                confirmEl.appendChild(cta);
+                btn.style.position = 'relative';
+                btn.appendChild(confirmEl);
+            }
+            return confirmEl;
+        };
+
+        const doSignOut = async () => {
             try { await signOutUser(); } finally {
+                confirmVisible = false;
+                const menu = document.getElementById('gpSignOutConfirm');
+                if (menu) menu.style.display = 'none';
                 if (btn) {
                     btn.innerHTML = '<span>Sign in</span>';
                     btn.href = '#';
-                    btn.removeEventListener('click', signOutHandler);
+                    btn.removeEventListener('click', toggleConfirmHandler);
                     btn.addEventListener('click', signInClickHandler);
                 }
                 addGuestButtonIfMissing();
             }
+        };
+
+        const toggleConfirmHandler = (e) => {
+            e.preventDefault();
+            const menu = ensureConfirmMenu();
+            if (!menu) return;
+            confirmVisible = !confirmVisible;
+            menu.style.display = confirmVisible ? 'block' : 'none';
         };
 
         btn?.addEventListener('click', signInClickHandler);
@@ -247,9 +279,9 @@
                 if (btn) {
                     // Replace the button node to ensure ALL old listeners are removed
                     const newBtn = btn.cloneNode(true);
-                    newBtn.innerHTML = `<span>${user.displayName || 'Sign out'}</span>`;
+                    newBtn.innerHTML = `<span>${user.displayName || 'Account'} ▼</span>`;
                     newBtn.href = '#';
-                    newBtn.addEventListener('click', signOutHandler);
+                    newBtn.addEventListener('click', toggleConfirmHandler);
                     btn.parentNode.replaceChild(newBtn, btn);
                     // update references to elements inside the button
                     btn = newBtn;
