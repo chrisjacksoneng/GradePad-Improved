@@ -565,28 +565,31 @@ onAuthStateChanged(async (user) => {
           throw new Error('Groq AI not properly configured');
         }
         
-        const prompt = `
-        Parse this course syllabus and extract assignment information in JSON format.
-        
-        Syllabus text:
-        ${syllabusText}
-        
-        Return ONLY a JSON array with this exact structure:
-        [
-          {
-            "name": "Assignment Name",
-            "weight": 25,
-            "dueDate": "2024-01-15"
-          }
-        ]
-        
-        Rules:
-        - Extract all assignments, exams, projects, etc.
-        - Convert percentages to numbers (e.g., "25%" becomes 25)
-        - Use YYYY-MM-DD format for dates
-        - If no date is specified, use "TBD"
-        - Return only valid JSON, no other text
-        `;
+        const prompt = `Parse this course syllabus and extract information.
+
+Syllabus:
+${syllabusText}
+
+Return JSON object with this structure:
+{
+  "courseCode": "CS 101",
+  "courseTitle": "Introduction to Computer Science",
+  "assignments": [
+    {"name": "Midterm Exam", "weight": 30, "dueDate": "2024-03-15"},
+    {"name": "Final Project", "weight": 40, "dueDate": "2024-04-20"}
+  ]
+}
+
+Rules:
+- Extract course code (e.g., "CS 101", "ENG 200", "MATH 301")
+- Extract course title/name
+- Extract ALL assignments, exams, projects, quizzes
+- Convert percentage weights to numbers (e.g., "25%" → 25)
+- Use YYYY-MM-DD for dates
+- If no date found, use "TBD"
+- Return ONLY the JSON object, no explanations, no markdown, no other text
+
+JSON only:`;
         
         try {
           console.log('Making Groq API request...');
@@ -602,7 +605,7 @@ onAuthStateChanged(async (user) => {
               messages: [
                 {
                   role: 'system',
-                  content: 'You are a helpful assistant that parses course syllabi and returns structured JSON data.'
+                  content: 'You are a helpful assistant that parses course syllabi and returns structured JSON data. Extract course code (like CS101, ENG200) and course title from the syllabus.'
                 },
                 {
                   role: 'user',
@@ -632,7 +635,13 @@ onAuthStateChanged(async (user) => {
           const text = data.choices[0].message.content;
           
           // Clean up the response (remove any markdown formatting)
-          const cleanedText = text.replace(/```json\n?|\n?```/g, '').trim();
+          let cleanedText = text.replace(/```json\n?|\n?```/g, '').trim();
+          
+          // Try to extract JSON if there's extra text
+          const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            cleanedText = jsonMatch[0];
+          }
           
           return JSON.parse(cleanedText);
         } catch (error) {
@@ -705,7 +714,24 @@ onAuthStateChanged(async (user) => {
             parseButton.disabled = true;
             
             try {
-              const assignments = await parseSyllabusWithAI(syllabusText);
+              const parsedData = await parseSyllabusWithAI(syllabusText);
+              
+              // Extract course info and assignments
+              const courseCode = parsedData.courseCode || "";
+              const courseTitle = parsedData.courseTitle || "";
+              const assignments = parsedData.assignments || [];
+              
+              // Fill in course code and title fields
+              const courseCodeInput = document.querySelector('.courseCode');
+              const courseTitleInput = document.querySelector('.courseTopic');
+              
+              if (courseCodeInput && courseCode) {
+                courseCodeInput.value = courseCode;
+              }
+              
+              if (courseTitleInput && courseTitle) {
+                courseTitleInput.value = courseTitle;
+              }
               
               // Add each assignment to the table
               assignments.forEach(assignment => {
@@ -739,7 +765,7 @@ onAuthStateChanged(async (user) => {
                 modals.forEach(m => m.style.display = 'none');
               }
               
-              alert(`Successfully parsed ${assignments.length} assignments!`);
+              // Successfully parsed - no alert needed
               
               // Force close modal with additional methods
               setTimeout(() => {
