@@ -184,15 +184,29 @@
     <script type="module">
         import { signInWithGoogle } from './jsScripts/firebase.js';
         const btn = document.getElementById('googleSignInButton');
+        let isSigningIn = false;
         if (btn) {
             btn.addEventListener('click', async (e) => {
                 e.preventDefault();
+                if (isSigningIn) return; // prevent concurrent popups
+                isSigningIn = true;
+                btn.style.pointerEvents = 'none';
+                btn.style.opacity = '0.7';
                 try {
                     await signInWithGoogle();
                     window.location.href = 'gradepad/grades.html';
                 } catch (err) {
-                    console.error('Sign-in failed:', err);
-                    alert('Sign-in failed. Please try again.');
+                    // Ignore duplicate-popup cancellation; surface others
+                    if (err && err.code === 'auth/cancelled-popup-request') {
+                        console.warn('Popup cancelled (another popup was opened).');
+                    } else {
+                        console.error('Sign-in failed:', err);
+                        alert('Sign-in failed. Please try again.');
+                    }
+                } finally {
+                    isSigningIn = false;
+                    btn.style.pointerEvents = '';
+                    btn.style.opacity = '';
                 }
             });
         }
