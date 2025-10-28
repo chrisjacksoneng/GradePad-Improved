@@ -39,7 +39,7 @@ body:has(.about-hero) {
   justify-content: space-between;
   align-items: center;
   padding: 20px 40px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #ffffff;
   background-color: #000000;
   position: fixed;
   top: 0;

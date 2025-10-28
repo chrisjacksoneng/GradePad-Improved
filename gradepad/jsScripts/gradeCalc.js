@@ -75,9 +75,9 @@ export function calculateFinalGrade(event) {
     const average =
       totalUnits > 0 ? (weightedGradeSum / totalUnits).toFixed(2) : "0.00";
     
-    const gpaElement = document.getElementById("current-gpa");
+    const gpaElement = document.getElementById("navGpa");
     if (gpaElement) {
-      gpaElement.textContent = `Term GPA: ${average}`;
+      gpaElement.textContent = `GPA: ${average}`;
     }
   }
   
