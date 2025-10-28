@@ -18,6 +18,14 @@ body {
   padding-top: 80px;
 }
 
+/* Disable fixed background on mobile for performance */
+@media (max-width: 768px) {
+  body {
+    background-attachment: scroll;
+    padding-top: 100px;
+  }
+}
+
 /* Allow scrolling on about page */
 body:has(.about-hero) {
   overflow: auto;
@@ -115,7 +123,7 @@ body:has(.about-hero) {
 /* Hero Section */
 .hero-section {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   align-items: center;
   padding: 40px;
   height: calc(100vh - 140px);
@@ -123,15 +131,11 @@ body:has(.about-hero) {
 }
 
 .hero-left {
-  flex: 0 0 auto;
   max-width: 600px;
+  width: 100%;
   z-index: 2;
-  margin-left: auto;
-  margin-right: 50px;
-  position: absolute;
-  right: 1100px;
-  top: 50%;
-  transform: translateY(-50%);
+  text-align: left;
+  margin-left: -700px;
 }
 
 .hero-title {
@@ -191,9 +195,7 @@ body:has(.about-hero) {
 }
 
 .hero-right {
-  flex: 1;
-  position: relative;
-  height: 100%;
+  display: none;
 }
 
 .background-gradient {
@@ -466,46 +468,74 @@ body:has(.about-hero) {
   }
 
   .hero-section {
-    flex-direction: column;
-    text-align: center;
-    justify-content: center;
+    padding: 20px;
   }
 
   .hero-left {
     max-width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .hero-buttons {
-    justify-content: center;
+    margin-left: 0;
+    transform: none;
+    padding-left: 0;
   }
 }
 
 @media (max-width: 768px) {
   .top-header {
     flex-direction: column;
-    gap: 20px;
-    padding: 20px;
+    gap: 15px;
+    padding: 15px 20px;
   }
 
   .header-nav {
-    gap: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+  }
+
+  .header-right {
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+  }
+
+  .brand-name {
+    font-size: 1.5rem;
+  }
+
+  .hero-section {
+    padding: 20px;
+    height: auto;
+    min-height: calc(100vh - 100px);
+  }
+
+  .hero-left {
+    margin-left: 0;
+    transform: none;
+    padding-left: 0;
   }
 
   .hero-title {
-    font-size: 2.5rem;
+    font-size: 2rem;
+    line-height: 1.2;
+    margin-bottom: 20px;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+    margin-bottom: 30px;
   }
 
   .hero-buttons {
     flex-direction: column;
     width: 100%;
+    gap: 15px;
   }
 
   .btn-primary,
   .btn-secondary {
     width: 100%;
     text-align: center;
+    padding: 14px 24px;
   }
 
   .container {
@@ -513,7 +543,16 @@ body:has(.about-hero) {
   }
 
   .section-title {
-    font-size: 2rem;
+    font-size: 1.8rem;
+    margin-bottom: 30px;
+  }
+
+  .features-preview,
+  .stats-section,
+  .how-it-works,
+  .testimonials,
+  .cta-section {
+    padding: 40px 0;
   }
 
   .features-grid,
@@ -525,16 +564,52 @@ body:has(.about-hero) {
   }
 
   .stat-number {
-    font-size: 2.5rem;
+    font-size: 2rem;
+  }
+
+  .stat-label {
+    font-size: 0.9rem;
+  }
+
+  .cta-section h2 {
+    font-size: 1.8rem;
+  }
+
+  .cta-section p {
+    font-size: 1rem;
   }
 
   .cta-buttons {
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
+  }
+}
+
+/* Small screens (phones) */
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 1.75rem;
   }
 
-  .btn-primary,
-  .btn-secondary {
-    width: 200px;
+  .hero-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .cta-section h2 {
+    font-size: 1.5rem;
+  }
+
+  .brand-name {
+    font-size: 1.25rem;
+  }
+
+  .header-nav a,
+  .login-link,
+  .cta-button {
+    font-size: 0.85rem;
   }
 }
