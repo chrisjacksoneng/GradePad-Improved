@@ -201,7 +201,7 @@
             if (btn) { btn.style.pointerEvents = 'none'; btn.style.opacity = '0.7'; }
             try {
                 await signInWithGoogle();
-                window.location.href = '/gradepad/grades.html';
+                // Stay on current page after sign in
             } catch (err) {
                 if (!err || err.code !== 'auth/cancelled-popup-request') {
                     console.error('Sign-in failed:', err);
