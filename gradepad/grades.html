@@ -344,6 +344,7 @@
           <th class="collapse-hide">Due</th>
           <th>Mark</th>
           <th class="collapse-hide">Weight</th>
+          <th class="collapse-hide">Lost</th>
           <th class="collapse-hide">Actions</th>
         </tr>
         <tr>
@@ -351,6 +352,7 @@
           <td><input type="text" class="dueInput"></td>
           <td><input type="text" class="gradeInput"></td>
           <td><input type="text" class="weightInput"></td>
+          <td><span class="lostOutput">—</span></td>
           <td class="actionsColumn">
             <button class="addRowBtn" title="Add row below">+</button>
             <button class="removeRowBtn" title="Remove selected row">-</button>
@@ -362,6 +364,7 @@
           <td><input type="text" class="dueInput"></td>
           <td><input type="text" class="gradeInput"></td>
           <td><input type="text" class="weightInput"></td>
+          <td><span class="lostOutput">—</span></td>
           <td class="actionsColumn">
             <button class="addRowBtn" title="Add row below">+</button>
             <button class="removeRowBtn" title="Remove selected row">-</button>
@@ -373,6 +376,7 @@
           <td><input type="text" class="dueInput"></td>
           <td><input type="text" class="gradeInput"></td>
           <td><input type="text" class="weightInput"></td>
+          <td><span class="lostOutput">—</span></td>
           <td class="actionsColumn">
             <button class="addRowBtn" title="Add row below">+</button>
             <button class="removeRowBtn" title="Remove selected row">-</button>
@@ -561,12 +565,12 @@ onAuthStateChanged(async (user) => {
           throw new Error('Groq AI not properly configured');
         }
         
-        const prompt = `Parse this course syllabus and extract information.
+        const prompt = `Parse this course syllabus and extract ONLY the exact information provided.
 
 Syllabus:
 ${syllabusText}
 
-Return ONLY a JSON object with this structure:
+Return ONLY a JSON object in this format:
 {
   "courseCode": "CS 101",
   "courseTitle": "Introduction to Computer Science",
@@ -576,13 +580,15 @@ Return ONLY a JSON object with this structure:
   ]
 }
 
-Rules:
-- Extract course code (e.g., "CS 101", "ENG 200")
-- Extract course title/name
-- Extract ALL assignments, exams, projects, quizzes
-- Convert percentages to numbers (e.g., "25%" → 25)
-- Use YYYY-MM-DD for dates or "TBD"
-- Return ONLY valid JSON, no explanations`;
+CRITICAL RULES:
+- Extract ONLY the exact information from the syllabus
+- Do NOT create, modify, summarize, or reorder assignments
+- Keep the exact order as listed in the syllabus
+- Extract course code exactly as written (e.g., "SYDE 199")
+- Extract course title exactly as written
+- For dates, use the format shown (convert to YYYY-MM-DD if possible, otherwise keep original)
+- Weight percentages: convert "2.5%" to 2.5, "20%" to 20, etc.
+- Return ONLY the JSON object, no explanations, no summaries`;
         
         try {
           console.log('Making Groq API request...');
@@ -683,7 +689,10 @@ Rules:
           
           console.log('Extracted JSON:', jsonToParse.substring(0, 200) + '...');
           
-          return JSON.parse(jsonToParse);
+          const parsed = JSON.parse(jsonToParse);
+          console.log('Parsed result:', parsed);
+          
+          return parsed;
         } catch (error) {
           console.error('Error parsing syllabus:', error);
           throw new Error('Failed to parse syllabus: ' + error.message);
@@ -716,6 +725,7 @@ Rules:
           <td><input type="text" class="dueInput" value="${dueDate}"></td>
           <td><input type="number" placeholder="Mark" min="0" max="100"></td>
           <td><input type="number" placeholder="Weight" min="0" max="100" value="${weight}"></td>
+          <td><span class="lostOutput">—</span></td>
           <td class="actionsColumn">
             <button class="addRowBtn" title="Add Row">+</button>
             <button class="removeRowBtn" title="Remove Row">-</button>
@@ -772,8 +782,17 @@ Rules:
                 courseTitleInput.value = courseTitle;
               }
               
+              // Clear existing data rows first (keep only headers and final grade row)
+              const table = document.querySelector('table');
+              if (table) {
+                const existingRows = table.querySelectorAll("tr:not(:first-child, .columnTitles, #finalGradeRow)");
+                existingRows.forEach(row => row.remove());
+              }
+              
               // Add each assignment to the table
-              assignments.forEach(assignment => {
+              console.log('Adding assignments:', assignments);
+              assignments.forEach((assignment, index) => {
+                console.log(`Adding assignment ${index}:`, assignment);
                 addAssignmentRow(
                   assignment.name || 'Assignment',
                   assignment.weight || 0,
