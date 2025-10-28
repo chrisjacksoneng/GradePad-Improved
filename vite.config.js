@@ -15,9 +15,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: './gradepad/index.html',
-        grades: './gradepad/grades.html',
-        app: './gradepad/app.html',
-        features: './gradepad/features.html'
+        grades: './gradepad/grades.html'
       }
     }
   },
