@@ -462,6 +462,24 @@ body:has(.about-hero) {
 }
 
 /* Responsive Design */
+@media (max-width: 1600px) {
+  .hero-left {
+    margin-left: -800px;
+  }
+}
+
+@media (max-width: 1440px) {
+  .hero-left {
+    margin-left: -600px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .hero-left {
+    margin-left: -300px;
+  }
+}
+
 @media (max-width: 1024px) {
   .hero-title {
     font-size: 3.5rem;
@@ -493,9 +511,7 @@ body:has(.about-hero) {
   }
 
   .header-right {
-    flex-wrap: wrap;
-    gap: 15px;
-    justify-content: center;
+    display: none;
   }
 
   .brand-name {
