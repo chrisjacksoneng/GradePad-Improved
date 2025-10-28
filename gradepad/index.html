@@ -11,14 +11,14 @@
 <body>
     <!-- Top Navigation Bar -->
     <header class="top-header">
-        <a href="index.html" class="header-left">
+        <a href="/gradepad/index.html" class="header-left">
             <i data-lucide="calculator" style="width: 32px; height: 32px; color: white; margin-right: 10px;"></i>
             <span class="brand-name">GradePad</span>
         </a>
         <nav class="header-nav">
-            <a href="about.html">About</a>
-            <a href="features.html">Features</a>
-            <a href="support.html">Support</a>
+            <a href="/gradepad/about.html">About</a>
+            <a href="/gradepad/features.html">Features</a>
+            <a href="/gradepad/support.html">Support</a>
         </nav>
         <div class="header-right">
             <a id="googleSignInButton" href="#" aria-label="Sign in with Google" style="display:inline-flex;align-items:center;gap:8px;padding:10px 14px;background:#ffffff;color:#1f2937;border-radius:6px;font-weight:600;text-decoration:none;border:1px solid rgba(0,0,0,0.08);box-shadow:0 1px 2px rgba(0,0,0,0.06);margin-right:10px;position:relative;">
@@ -33,7 +33,7 @@
                     <button id="signOut" style="width:100%;background:transparent;border:1px solid rgba(255,255,255,0.2);color:#fff;padding:8px;border-radius:6px;cursor:pointer;">Sign out</button>
                 </div>
             </a>
-            <a href="grades.html" class="cta-button">→ Continue as guest</a>
+            <a href="/gradepad/grades.html" class="cta-button">→ Continue as guest</a>
         </div>
     </header>
 
@@ -206,7 +206,7 @@
             if (btn) { btn.style.pointerEvents = 'none'; btn.style.opacity = '0.7'; }
             try {
                 await signInWithGoogle();
-                window.location.href = 'gradepad/grades.html';
+                window.location.href = '/gradepad/grades.html';
             } catch (err) {
                 if (!err || err.code !== 'auth/cancelled-popup-request') {
                     console.error('Sign-in failed:', err);
@@ -273,7 +273,7 @@
             guestBtn = headerRight.querySelector('.cta-button');
             if (!guestBtn) {
                 const a = document.createElement('a');
-                a.href = 'grades.html';
+                a.href = '/gradepad/grades.html';
                 a.className = 'cta-button';
                 a.textContent = '→ Continue as guest';
                 headerRight.appendChild(a);
