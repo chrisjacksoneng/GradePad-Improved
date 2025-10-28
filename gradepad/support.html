@@ -33,6 +33,13 @@
             <a href="/gradepad/support.html">Support</a>
         </nav>
         <div class="header-right">
+            <a id="googleSignInButton" href="#" aria-label="Sign in with Google" style="display:inline-flex;align-items:center;gap:8px;padding:10px 14px;background:#ffffff;color:#1f2937;border-radius:6px;font-weight:600;text-decoration:none;border:1px solid rgba(0,0,0,0.08);box-shadow:0 1px 2px rgba(0,0,0,0.06);margin-right:10px;position:relative;">
+                <i data-lucide="log-in" style="width:18px;height:18px;color:#1f2937"></i>
+                <span>Sign in</span>
+                <div id="userMenu" style="display:none;position:absolute;top:100%;right:0;background:#0b0b0b;color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:8px;min-width:160px;z-index:1000;">
+                    <button id="signOut" style="width:100%;background:transparent;border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px;cursor:pointer;">Sign out</button>
+                </div>
+            </a>
             <a href="/gradepad/grades.html" class="cta-button">→ Continue as guest</a>
         </div>
     </header>
