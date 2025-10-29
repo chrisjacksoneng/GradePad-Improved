@@ -931,6 +931,19 @@ CRITICAL RULES:
                   assignment.dueDate || 'TBD'
                 );
               });
+
+              // Force-save parsed rows to persistence
+              const wrapper = document.querySelector('.table-wrapper');
+              const codeInputEl = wrapper?.querySelector('.courseCode');
+              // Ensure the course itself has been saved to get a courseId
+              if (wrapper && !wrapper.dataset.courseId && codeInputEl) {
+                codeInputEl.dispatchEvent(new Event('blur', { bubbles: true }));
+              }
+              // Give listeners a tick to attach, then blur each evaluation input to trigger row saves
+              setTimeout(() => {
+                const evalInputs = wrapper?.querySelectorAll('.dueInput, .gradeInput, .weightInput, td:nth-child(1) input') || [];
+                evalInputs.forEach((input) => input.dispatchEvent(new Event('blur', { bubbles: true })));
+              }, 150);
               
               // Clear the textarea
               document.querySelector('.syllabusTextbox').value = '';
