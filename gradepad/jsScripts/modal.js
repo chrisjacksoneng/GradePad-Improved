@@ -197,8 +197,20 @@ export function attachSyllabusButtonListeners(tableElement) {
         const existingRows = table.querySelectorAll("tr:not(:first-child, .columnTitles, #finalGradeRow)");
         existingRows.forEach(row => row.remove());
         
-        // Add each assignment
-        assignments.forEach(assignment => {
+        // Add each assignment (filter out rows that are just course code/title or empty)
+        const filtered = (assignments || []).filter(a => {
+          const n = (a.name || "").trim();
+          const w = a.weight;
+          const d = (a.dueDate || a.due || "").trim();
+          if (!n) return false;
+          if (courseCode && n.toLowerCase() === courseCode.toLowerCase()) return false;
+          if (courseTitle && n.toLowerCase() === courseTitle.toLowerCase()) return false;
+          // skip lines with no useful fields
+          if ((w === undefined || w === null || w === "") && !d) return false;
+          return true;
+        });
+
+        filtered.forEach(assignment => {
           const newRow = document.createElement("tr");
           newRow.innerHTML = `
             <td><input type="text" value="${assignment.name || 'Assignment'}"></td>
@@ -292,7 +304,16 @@ export function attachSyllabusButtonListeners(tableElement) {
     const existingRows = table.querySelectorAll("tr:not(:first-child, .columnTitles, #finalGradeRow)");
     existingRows.forEach(row => row.remove());
 
-    rows.forEach(({ name, weight }) => {
+    // Add parsed rows (skip if they match course code/title)
+    rows
+      .filter(r => {
+        const n = (r.name || "").trim();
+        if (!n) return false;
+        if (courseCode && n.toLowerCase() === courseCode.toLowerCase()) return false;
+        if (courseTitle && n.toLowerCase() === courseTitle.toLowerCase()) return false;
+        return true;
+      })
+      .forEach(({ name, weight }) => {
       const newRow = document.createElement("tr");
       newRow.innerHTML = `
         <td><input type="text" value="${name}"></td>
