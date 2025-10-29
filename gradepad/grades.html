@@ -600,6 +600,10 @@ onAuthChange(async (user) => {
 
         attachEventListeners(table);
       });
+      // Safety: if for any reason no table wrapper is present, ensure one exists
+      if (!document.querySelector('.table-wrapper')) {
+        createNewTable([], true);
+      }
     }
   } catch (err) {
     console.error("❌ Failed to load or render courses:", err);
