@@ -438,22 +438,75 @@
 
     <script type="module">
 import { onAuthChange } from "./jsScripts/firebase.js";
-import { loadCourses } from "./jsScripts/db.js";
+import { loadCourses, saveSemester, loadSemesters } from "./jsScripts/db.js";
 import { createNewTable, attachEventListeners } from "./jsScripts/tableOps.js";
 
-const semesterId = new URLSearchParams(window.location.search).get("semesterId");
+let currentSemesterId = new URLSearchParams(window.location.search).get("semesterId");
+const semesterNameInput = document.getElementById("semesterName");
 
-// Load courses when auth state is determined
-onAuthChange(async (user) => {
-  // Wait a bit for auth to fully initialize
-  if (!semesterId) {
-    // No semester ID - show blank table
-    createNewTable([], true);
-    return;
-  }
+// Function to save semester name when user types
+let saveSemesterTimeout;
+async function saveSemesterName() {
+  const name = semesterNameInput?.value.trim();
+  if (!name) return;
 
   try {
-    const courses = await loadCourses(semesterId);
+    // Use existing semesterId if we have one, otherwise create new
+    const semesterId = await saveSemester({ 
+      name, 
+      startDate: null, 
+      endDate: null, 
+      semesterId: currentSemesterId 
+    });
+    
+    if (semesterId) {
+      currentSemesterId = semesterId;
+      // Update URL without page reload if we didn't have a semesterId before
+      if (!new URLSearchParams(window.location.search).get("semesterId")) {
+        const url = new URL(window.location);
+        url.searchParams.set("semesterId", semesterId);
+        window.history.replaceState({}, "", url);
+      }
+      console.log("✅ Semester saved:", name, semesterId);
+    }
+  } catch (err) {
+    console.error("❌ Failed to save semester:", err);
+  }
+}
+
+// Auto-save semester name when user types (with debounce)
+if (semesterNameInput) {
+  semesterNameInput.addEventListener("input", () => {
+    clearTimeout(saveSemesterTimeout);
+    saveSemesterTimeout = setTimeout(saveSemesterName, 1000); // Wait 1 second after typing stops
+  });
+  
+  semesterNameInput.addEventListener("blur", () => {
+    clearTimeout(saveSemesterTimeout);
+    saveSemesterName(); // Save immediately when they leave the field
+  });
+}
+
+// Load courses and semester name when auth state is determined
+onAuthChange(async (user) => {
+  try {
+    // Load semester name if we have a semesterId
+    if (currentSemesterId) {
+      const semesters = await loadSemesters();
+      const semester = semesters.find(s => s.id === currentSemesterId);
+      if (semester && semesterNameInput) {
+        semesterNameInput.value = semester.name || "";
+      }
+    }
+    
+    // Load courses
+    if (!currentSemesterId) {
+      // No semester ID - show blank table
+      createNewTable([], true);
+      return;
+    }
+
+    const courses = await loadCourses(currentSemesterId);
     console.log("📚 Loaded courses:", courses);
 
     if (courses.length === 0) {
@@ -498,25 +551,8 @@ onAuthChange(async (user) => {
       // Initialize Lucide icons
       lucide.createIcons();
       
-      // Update semester name in header
-      function updateSemesterName() {
-        // Try to get semester name from URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-        const semesterName = urlParams.get('semester');
-        
-        if (semesterName) {
-          document.getElementById('semesterName').textContent = semesterName;
-        } else {
-          // Try to get from localStorage or default
-          const storedSemester = localStorage.getItem('currentSemesterName');
-          if (storedSemester) {
-            document.getElementById('semesterName').textContent = storedSemester;
-          } else {
-            // Default fallback - you can change this to whatever semester name you want
-            document.getElementById('semesterName').textContent = 'Fall 2023';
-          }
-        }
-      }
+      // Note: Semester name is now handled by the module script above
+      // This function is kept for backward compatibility but shouldn't override the input value
       
       // Update GPA in navigation header
       function updateNavGpa() {
