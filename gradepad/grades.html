@@ -446,11 +446,21 @@ const semesterNameInput = document.getElementById("semesterName");
 
 // Function to save semester name when user types
 let saveSemesterTimeout;
+let savingSemester = false;
 async function saveSemesterName() {
   const name = semesterNameInput?.value.trim();
   if (!name) return;
 
   try {
+    if (savingSemester) return;
+    savingSemester = true;
+
+    // If we don't yet have an id, try to reuse an existing semester with same name
+    if (!currentSemesterId) {
+      const existing = (await loadSemesters()).find(s => (s.name || "").trim() === name);
+      if (existing) currentSemesterId = existing.id;
+    }
+
     // Use existing semesterId if we have one, otherwise create new
     const semesterId = await saveSemester({ 
       name, 
@@ -461,9 +471,9 @@ async function saveSemesterName() {
     
     if (semesterId) {
       currentSemesterId = semesterId;
-      // Update URL without page reload if we didn't have a semesterId before
-      if (!new URLSearchParams(window.location.search).get("semesterId")) {
-        const url = new URL(window.location);
+      // Always ensure URL matches the active semester id
+      const url = new URL(window.location);
+      if (url.searchParams.get("semesterId") !== semesterId) {
         url.searchParams.set("semesterId", semesterId);
         window.history.replaceState({}, "", url);
       }
@@ -473,6 +483,8 @@ async function saveSemesterName() {
     }
   } catch (err) {
     console.error("❌ Failed to save semester:", err);
+  } finally {
+    savingSemester = false;
   }
 }
 
@@ -492,12 +504,28 @@ if (semesterNameInput) {
 // Load courses and semester name when auth state is determined
 onAuthChange(async (user) => {
   try {
-    // Load semester name if we have a semesterId
+    // Load semester name if we have a semesterId; if not found, recover gracefully
+    const semesters = await loadSemesters();
     if (currentSemesterId) {
-      const semesters = await loadSemesters();
-      const semester = semesters.find(s => s.id === currentSemesterId);
+      let semester = semesters.find(s => s.id === currentSemesterId);
+      if (!semester && semesterNameInput?.value) {
+        // Try to match by name if id mismatch
+        semester = semesters.find(s => (s.name || "").trim() === semesterNameInput.value.trim());
+        if (semester) currentSemesterId = semester.id;
+      }
+      if (!semester && semesters.length > 0) {
+        // Fallback to the most recent
+        semester = semesters[semesters.length - 1];
+        currentSemesterId = semester.id;
+      }
       if (semester && semesterNameInput) {
         semesterNameInput.value = semester.name || "";
+        // Ensure URL reflects recovered id
+        const url = new URL(window.location);
+        if (url.searchParams.get("semesterId") !== currentSemesterId) {
+          url.searchParams.set("semesterId", currentSemesterId);
+          window.history.replaceState({}, "", url);
+        }
       }
     }
     
