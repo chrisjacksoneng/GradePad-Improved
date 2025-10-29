@@ -1,5 +1,6 @@
 import { saveSemester } from './db.js';
 import { deleteSemester } from './db.js';
+import { saveCourse, clearEvaluations, saveEvaluation } from './db.js';
 import { addRow, removeRow, attachEventListeners } from './tableOps.js';
 import { setupMoveRowButton } from './dragDrop.js';
 import { calculateFinalGrade } from './gradeCalc.js';
@@ -217,6 +218,40 @@ export function attachSyllabusButtonListeners(tableElement) {
         const wrapper = table.closest(".table-wrapper");
         attachEventListeners(wrapper);
         calculateFinalGrade(table);
+
+        // Immediately persist parsed data so it survives reloads
+        try {
+          const semesterId = new URLSearchParams(window.location.search).get("semesterId");
+          if (semesterId) {
+            const codeInput = table.querySelector(".courseCode");
+            const topicInput = table.querySelector(".courseTopic");
+            const unitsDropdown = table.querySelector(".courseUnitsDropdown");
+            const code = codeInput?.value?.trim() || "";
+            const topic = topicInput?.value?.trim() || "";
+            const units = parseFloat(unitsDropdown?.value || "0.50");
+
+            let courseId = wrapper.dataset.courseId || null;
+            courseId = await saveCourse({ semesterId, code, topic, units, courseId });
+            if (courseId) {
+              wrapper.dataset.courseId = courseId;
+              await clearEvaluations(semesterId, courseId);
+
+              const evalRows = [...table.querySelectorAll("tr:not(.columnTitles):not(#finalGradeRow)")];
+              for (const [index, row] of evalRows.entries()) {
+                const name = row.querySelector("td:nth-child(1) input")?.value?.trim() || "";
+                const due = row.querySelector(".dueInput")?.value?.trim() || "";
+                const grade = row.querySelector(".gradeInput")?.value?.trim() || "";
+                const weight = row.querySelector(".weightInput")?.value?.trim() || "";
+                if (name || due || grade || weight) {
+                  await saveEvaluation({ semesterId, courseId, name, due, grade, weight, index });
+                }
+              }
+            }
+          }
+        } catch (persistErr) {
+          console.error('❌ Failed to persist parsed syllabus (AI path):', persistErr);
+        }
+
         syllabusModal.style.display = "none";
         parseSyllabusButton.textContent = 'Parse Syllabus';
         parseSyllabusButton.disabled = false;
@@ -277,6 +312,40 @@ export function attachSyllabusButtonListeners(tableElement) {
     const wrapper = table.closest(".table-wrapper");
     attachEventListeners(wrapper);
     calculateFinalGrade(table);
+
+    // Immediately persist parsed data so it survives reloads (fallback path)
+    try {
+      const semesterId = new URLSearchParams(window.location.search).get("semesterId");
+      if (semesterId) {
+        const codeInput = table.querySelector(".courseCode");
+        const topicInput = table.querySelector(".courseTopic");
+        const unitsDropdown = table.querySelector(".courseUnitsDropdown");
+        const code = codeInput?.value?.trim() || "";
+        const topic = topicInput?.value?.trim() || "";
+        const units = parseFloat(unitsDropdown?.value || "0.50");
+
+        let courseId = wrapper.dataset.courseId || null;
+        courseId = await saveCourse({ semesterId, code, topic, units, courseId });
+        if (courseId) {
+          wrapper.dataset.courseId = courseId;
+          await clearEvaluations(semesterId, courseId);
+
+          const evalRows = [...table.querySelectorAll("tr:not(.columnTitles):not(#finalGradeRow)")];
+          for (const [index, row] of evalRows.entries()) {
+            const name = row.querySelector("td:nth-child(1) input")?.value?.trim() || "";
+            const due = row.querySelector(".dueInput")?.value?.trim() || "";
+            const grade = row.querySelector(".gradeInput")?.value?.trim() || "";
+            const weight = row.querySelector(".weightInput")?.value?.trim() || "";
+            if (name || due || grade || weight) {
+              await saveEvaluation({ semesterId, courseId, name, due, grade, weight, index });
+            }
+          }
+        }
+      }
+    } catch (persistErr) {
+      console.error('❌ Failed to persist parsed syllabus (fallback path):', persistErr);
+    }
+
     syllabusModal.style.display = "none";
     
     // Reset button
