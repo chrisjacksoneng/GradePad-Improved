@@ -116,8 +116,14 @@ export function attachEventListeners(wrapper) {
         
       };
 
-      wrapper.querySelectorAll(".dueInput, .gradeInput, .weightInput, td:nth-child(1) input").forEach((input) => {
-        input.addEventListener("blur", () => saveEval(input));
+      // Attach listeners ONLY to real evaluation rows
+      const evalRows = [...wrapper.querySelectorAll("tr")].filter(r =>
+        r.querySelector('.dueInput') || r.querySelector('.gradeInput') || r.querySelector('.weightInput')
+      );
+      evalRows.forEach(r => {
+        r.querySelectorAll(".dueInput, .gradeInput, .weightInput, td:nth-child(1) input").forEach((input) => {
+          input.addEventListener("blur", () => saveEval(input));
+        });
       });
     } else {
       // Wait for courseId to appear, then attach once
@@ -295,6 +301,25 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
       `;
       finalRow.before(row);
     });
+    // Pad with blank rows up to minimum of 3
+    const minRows = 3;
+    const toAdd = Math.max(0, minRows - evaluations.length);
+    for (let i = 0; i < toAdd; i++) {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><input type="text" placeholder="Evaluation ${evaluations.length + i + 1}"></td>
+        <td><input type="text" class="dueInput"></td>
+        <td><input type="text" class="gradeInput"></td>
+        <td><input type="text" class="weightInput"></td>
+        <td><span class="lostOutput">—</span></td>
+        <td class="actionsColumn">
+          <button class="addRowBtn" title="Add row below">+</button>
+          <button class="removeRowBtn" title="Remove selected row">-</button>
+          <button class="moveRowBtn" title="Move selected row">&#9776;</button>
+        </td>
+      `;
+      finalRow.before(row);
+    }
   } else {
     for (let i = 0; i < 3; i++) {
       const row = document.createElement("tr");
