@@ -522,8 +522,9 @@ onAuthChange(async (user) => {
       courses.forEach((course, index) => {
         const { id, code, topic, units, evaluations = [] } = course;
 
-        // 🧠 Use the hardcoded table for the first course only
-        const table = createNewTable(evaluations, index === 0);
+        // 🧠 Use the hardcoded table only if it still exists
+        const hasExisting = !!document.querySelector('.table-wrapper');
+        const table = createNewTable(evaluations, index === 0 && hasExisting);
 
         table.dataset.courseId = id;
 
