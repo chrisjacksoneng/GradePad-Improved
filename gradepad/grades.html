@@ -937,10 +937,10 @@ CRITICAL RULES:
               });
 
               // Persist parsed table explicitly (no reliance on blur listeners)
-              async function persistParsedTable() {
+              async function persistParsedTable(wrapperCtx) {
                 try {
                   if (!currentSemesterId) return;
-                  const wrapper = document.querySelector('.table-wrapper');
+                  const wrapper = wrapperCtx || document.querySelector('.table-wrapper');
                   if (!wrapper) return;
                   const code = wrapper.querySelector('.courseCode')?.value?.trim() || '';
                   const topic = wrapper.querySelector('.courseTopic')?.value?.trim() || '';
@@ -968,7 +968,10 @@ CRITICAL RULES:
                   console.error('Persist parsed table failed:', e);
                 }
               }
-              persistParsedTable();
+              // Determine which table initiated parsing (the button's closest wrapper)
+              const triggeredBy = this || document.activeElement;
+              const wrapperContext = triggeredBy?.closest ? triggeredBy.closest('.table-wrapper') : null;
+              persistParsedTable(wrapperContext);
               
               // Clear the textarea
               document.querySelector('.syllabusTextbox').value = '';
