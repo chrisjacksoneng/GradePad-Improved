@@ -689,14 +689,7 @@ onAuthChange(async (user) => {
       // listAvailableModels();
       
       // Initialize Groq AI
-      function initializeGroq() {
-        if (!CONFIG || !CONFIG.GROQ_API_KEY || CONFIG.GROQ_API_KEY === "YOUR_API_KEY_HERE") {
-          console.error('Please set your Groq API key in config.js');
-          console.log('Get your free API key at: https://console.groq.com/');
-          return false;
-        }
-        return true;
-      }
+      function initializeGroq() { return true; }
       
       // Parse syllabus using Groq AI via fetch API
       window.parseSyllabusWithAI = async function(syllabusText) {
@@ -733,11 +726,10 @@ CRITICAL RULES:
         try {
           console.log('Making Groq API request...');
           
-          const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          const response = await fetch('/.netlify/functions/groq', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${CONFIG.GROQ_API_KEY}`
             },
             body: JSON.stringify({
               model: 'llama-3.1-8b-instant',
