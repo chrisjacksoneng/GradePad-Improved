@@ -76,14 +76,22 @@ export function attachEventListeners(wrapper) {
   const table = wrapper.querySelector("table");
   if (!table) return;
 
-  table.querySelectorAll(".gradeInput, .weightInput").forEach((input) => {
+  table.querySelectorAll('.gradeInput').forEach((input) => {
+    input.setAttribute('step','1');
+    input.setAttribute('min','0');
+    input.addEventListener('input', () => {
+      input.value = input.value.replace(/[^0-9]/g, '');
+    });
+    input.addEventListener('input', calculateFinalGrade);
+  });
+  table.querySelectorAll('.weightInput').forEach((input) => {
     input.setAttribute('step','1');
     input.setAttribute('min','0');
     input.setAttribute('max','100');
     input.addEventListener('input', () => {
       input.value = input.value.replace(/[^0-9]/g, '');
     });
-    input.addEventListener("input", calculateFinalGrade)
+    input.addEventListener('input', calculateFinalGrade);
   });
 
   table.querySelectorAll(".addRowBtn").forEach((btn) =>
@@ -313,8 +321,8 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
       row.innerHTML = `
         <td><input type="text" value="${name}" placeholder="Evaluation ${index + 1}"></td>
         <td><input type="text" class="dueInput" value="${due}"></td>
-        <td><input type="text" class="gradeInput" value="${grade}"></td>
-        <td><input type="text" class="weightInput" value="${weight}"></td>
+        <td><input type="number" class="gradeInput" step="1" min="0" value="${grade}"></td>
+        <td><input type="number" class="weightInput" step="1" min="0" max="100" value="${weight}"></td>
         <td><span class="lostOutput">—</span></td>
         <td class="actionsColumn">
           <button class="addRowBtn" title="Add row below">+</button>
@@ -332,8 +340,8 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
       row.innerHTML = `
         <td><input type="text" placeholder="Evaluation ${evaluations.length + i + 1}"></td>
         <td><input type="text" class="dueInput"></td>
-        <td><input type="text" class="gradeInput"></td>
-        <td><input type="text" class="weightInput"></td>
+        <td><input type="number" class="gradeInput" step="1" min="0"></td>
+        <td><input type="number" class="weightInput" step="1" min="0" max="100"></td>
         <td><span class="lostOutput">—</span></td>
         <td class="actionsColumn">
           <button class="addRowBtn" title="Add row below">+</button>
