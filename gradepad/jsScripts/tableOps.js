@@ -376,6 +376,11 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
 
   attachEventListeners(newTable);
 
+  // Recalculate lost/current mark/GPA after rendering saved values
+  try {
+    calculateFinalGrade(table);
+  } catch (_) {}
+
   return newTable;
 }
 
