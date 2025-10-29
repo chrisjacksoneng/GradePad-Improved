@@ -270,7 +270,15 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
     if (lastTable) {
       lastTable.insertAdjacentElement("afterend", newTable);
     } else {
-      document.querySelector(".table-container").appendChild(newTable);
+      const container = document.querySelector(".table-container");
+      const addBtn = container?.querySelector("#addTable");
+      if (container) {
+        if (addBtn) {
+          container.insertBefore(newTable, addBtn); // keep + Course below and to the right
+        } else {
+          container.appendChild(newTable);
+        }
+      }
     }
   }
 
