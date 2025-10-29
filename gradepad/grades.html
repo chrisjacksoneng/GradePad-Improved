@@ -559,16 +559,10 @@ onAuthChange(async (user) => {
       // No saved courses → just show blank table using existing HTML one
       createNewTable([], true);
     } else {
-      // Remove the existing hardcoded table first
-      const existingTable = document.querySelector(".table-wrapper");
-      if (existingTable && courses.length > 0) {
-        existingTable.remove();
-      }
-
       courses.forEach((course, index) => {
         const { id, code, topic, units, evaluations = [] } = course;
 
-        // 🧠 Use the hardcoded table only if it still exists
+        // 🧠 Use the hardcoded table if it still exists for the first course
         const hasExisting = !!document.querySelector('.table-wrapper');
         const table = createNewTable(evaluations, index === 0 && hasExisting);
 

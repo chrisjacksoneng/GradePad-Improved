@@ -273,8 +273,15 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
       const container = document.querySelector(".table-container");
       const firstRow = container?.querySelector(".table-row");
       if (container && firstRow) {
-        // Insert the first dynamic table BELOW the first row (so + Course stays to the right of the top table)
-        container.insertBefore(newTable, firstRow.nextSibling);
+        const addBtn = firstRow.querySelector('#addTable');
+        const existingTopTable = firstRow.querySelector('.table-wrapper');
+        if (!existingTopTable && addBtn) {
+          // Put the very first real table to the left of the + Course button
+          firstRow.insertBefore(newTable, addBtn);
+        } else {
+          // Additional tables go below the first row
+          container.insertBefore(newTable, firstRow.nextSibling);
+        }
       } else if (container) {
         container.appendChild(newTable);
       }
