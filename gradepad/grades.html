@@ -73,13 +73,18 @@
       margin-left: 20px !important;
       display: flex !important;
       flex-direction: column !important;
-      position: relative !important;
+      gap: 12px !important;
+    }
+    .table-row {
+      display: flex !important;
+      align-items: flex-start !important;
+      gap: 12px !important;
+      width: 100% !important;
     }
     #addTable {
-      position: absolute !important;
-      top: 6px !important;
-      right: 20px !important;
-      margin: 0 !important;
+      margin: 0 20px 0 0 !important;
+      align-self: flex-start !important;
+      white-space: nowrap !important;
     }
     
     /* Update row highlighting color when dragging */
@@ -349,7 +354,8 @@
 
 
   <div class="table-container">
-    <div class="table-wrapper">
+    <div class="table-row">
+      <div class="table-wrapper">
       <table>
         <tr>
           <td colspan="6" class="courseHeader">
@@ -438,8 +444,9 @@
         </tr>
         
       </table>
+      </div>
+      <button id="addTable">+ Course</button>
     </div>
-    <button id="addTable">+ Course</button>
   </div>
 
   <script type="module" src="jsScripts/main.js"></script>

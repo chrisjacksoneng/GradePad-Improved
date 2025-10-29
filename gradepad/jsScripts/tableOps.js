@@ -271,13 +271,12 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
       lastTable.insertAdjacentElement("afterend", newTable);
     } else {
       const container = document.querySelector(".table-container");
-      const addBtn = container?.querySelector("#addTable");
-      if (container) {
-        if (addBtn) {
-          container.insertBefore(newTable, addBtn); // keep + Course below and to the right
-        } else {
-          container.appendChild(newTable);
-        }
+      const firstRow = container?.querySelector(".table-row");
+      if (container && firstRow) {
+        // Insert the first dynamic table BELOW the first row (so + Course stays to the right of the top table)
+        container.insertBefore(newTable, firstRow.nextSibling);
+      } else if (container) {
+        container.appendChild(newTable);
       }
     }
   }
