@@ -150,7 +150,10 @@ export function attachEventListeners(wrapper) {
         const topic = topicInput.value.trim();
         const units = parseFloat(unitsDropdown.value);
 
-        if (code && !isNaN(units)) {
+        // Guard: only create a course when there is meaningful data
+        const hasMeaningfulData = (code.length >= 2 || topic.length >= 2) && !isNaN(units);
+
+        if (hasMeaningfulData) {
           const existingCourseId = wrapper.dataset.courseId;
 
           if (existingCourseId) {

@@ -574,7 +574,7 @@ onAuthChange(async (user) => {
 
         if (codeInput) codeInput.value = code || "";
         if (topicInput) topicInput.value = topic || "";
-        if (unitsDropdown) unitsDropdown.value = units?.toString() || "0.50";
+        if (unitsDropdown) unitsDropdown.value = (units != null ? Number(units).toFixed(2) : "0.50");
 
         attachEventListeners(table);
       });
