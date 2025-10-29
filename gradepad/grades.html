@@ -454,7 +454,7 @@
 
     <script type="module">
 import { onAuthChange } from "./jsScripts/firebase.js";
-import { loadCourses, saveSemester, loadSemesters } from "./jsScripts/db.js";
+import { loadCourses, saveSemester, loadSemesters, saveCourse, saveEvaluation } from "./jsScripts/db.js";
 import { createNewTable, attachEventListeners, attachAllEventListeners } from "./jsScripts/tableOps.js";
 
 let currentSemesterId = new URLSearchParams(window.location.search).get("semesterId");
@@ -936,18 +936,39 @@ CRITICAL RULES:
                 );
               });
 
-              // Force-save parsed rows to persistence
-              const wrapper = document.querySelector('.table-wrapper');
-              const codeInputEl = wrapper?.querySelector('.courseCode');
-              // Ensure the course itself has been saved to get a courseId
-              if (wrapper && !wrapper.dataset.courseId && codeInputEl) {
-                codeInputEl.dispatchEvent(new Event('blur', { bubbles: true }));
+              // Persist parsed table explicitly (no reliance on blur listeners)
+              async function persistParsedTable() {
+                try {
+                  if (!currentSemesterId) return;
+                  const wrapper = document.querySelector('.table-wrapper');
+                  if (!wrapper) return;
+                  const code = wrapper.querySelector('.courseCode')?.value?.trim() || '';
+                  const topic = wrapper.querySelector('.courseTopic')?.value?.trim() || '';
+                  const units = parseFloat(wrapper.querySelector('.courseUnitsDropdown')?.value || '0.50');
+                  const existingId = wrapper.dataset.courseId || null;
+                  // Ensure course exists, get courseId
+                  const courseId = await saveCourse({ semesterId: currentSemesterId, code, topic, units, courseId: existingId });
+                  if (courseId) wrapper.dataset.courseId = courseId;
+
+                  // Save each evaluation row in order
+                  const rows = [...wrapper.querySelectorAll('tr')].filter(r =>
+                    r.querySelector('.dueInput') || r.querySelector('.gradeInput') || r.querySelector('.weightInput')
+                  );
+                  for (let i = 0; i < rows.length; i++) {
+                    const row = rows[i];
+                    const name = row.querySelector('td:nth-child(1) input')?.value?.trim() || '';
+                    const due = row.querySelector('.dueInput')?.value?.trim() || '';
+                    const grade = row.querySelector('.gradeInput')?.value?.trim() || '';
+                    const weight = row.querySelector('.weightInput')?.value?.trim() || '';
+                    if (name || due || grade || weight) {
+                      await saveEvaluation({ semesterId: currentSemesterId, courseId, name, due, grade, weight, index: i });
+                    }
+                  }
+                } catch (e) {
+                  console.error('Persist parsed table failed:', e);
+                }
               }
-              // Give listeners a tick to attach, then blur each evaluation input to trigger row saves
-              setTimeout(() => {
-                const evalInputs = wrapper?.querySelectorAll('.dueInput, .gradeInput, .weightInput, td:nth-child(1) input') || [];
-                evalInputs.forEach((input) => input.dispatchEvent(new Event('blur', { bubbles: true })));
-              }, 150);
+              persistParsedTable();
               
               // Clear the textarea
               document.querySelector('.syllabusTextbox').value = '';
