@@ -1,5 +1,5 @@
 [build]
-  command = "bash -lc 'mkdir -p gradepad/jsScripts && cat > gradepad/jsScripts/firebase-config.js <<EOF\nexport const firebaseConfig = {\n  apiKey: \"$FIREBASE_API_KEY\",\n  authDomain: \"gradepad-improved.firebaseapp.com\",\n  projectId: \"gradepad-improved\",\n  storageBucket: \"gradepad-improved.firebasestorage.app\",\n  messagingSenderId: \"223375674663\",\n  appId: \"1:223375674663:web:6a2c54d972034e1c21ed02\",\n  measurementId: \"G-7T6TTG6XQL\"\n};\nEOF' && npm run build"
+  command = "bash -lc 'mkdir -p gradepad/jsScripts && cat > gradepad/jsScripts/firebase-config.js <<EOF\nexport const firebaseConfig = {\n  apiKey: \"$FIREBASE_API_KEY\",\n  authDomain: \"gradepad-improved.firebaseapp.com\",\n  projectId: \"gradepad-improved\",\n  storageBucket: \"gradepad-improved.firebasestorage.app\",\n  messagingSenderId: \"223375674663\",\n  appId: \"1:223375674663:web:6a2c54d972034e1c21ed02\",\n  measurementId: \"G-7T6TTG6XQL\"\n};\nEOF\nmkdir -p gradepad && cat > gradepad/config.js <<EOF\nconst CONFIG = {\n  GROQ_API_KEY: \"$GROQ_API_KEY\"\n};\nEOF' && npm run build"
   publish = "dist"
 
 # Let actual HTML files be served directly (about.html, support.html, features.html, etc.)
