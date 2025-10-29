@@ -439,7 +439,7 @@
     <script type="module">
 import { onAuthChange } from "./jsScripts/firebase.js";
 import { loadCourses, saveSemester, loadSemesters } from "./jsScripts/db.js";
-import { createNewTable, attachEventListeners } from "./jsScripts/tableOps.js";
+import { createNewTable, attachEventListeners, attachAllEventListeners } from "./jsScripts/tableOps.js";
 
 let currentSemesterId = new URLSearchParams(window.location.search).get("semesterId");
 const semesterNameInput = document.getElementById("semesterName");
@@ -468,6 +468,8 @@ async function saveSemesterName() {
         window.history.replaceState({}, "", url);
       }
       console.log("✅ Semester saved:", name, semesterId);
+      // Now that we have a semester id, ensure all existing tables are wired to save
+      attachAllEventListeners();
     }
   } catch (err) {
     console.error("❌ Failed to save semester:", err);

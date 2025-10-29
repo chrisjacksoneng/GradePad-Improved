@@ -131,6 +131,56 @@ export function attachEventListeners(wrapper) {
     }
   }
 
+  // Add course save listeners when semesterId is available
+  if (semesterId && wrapper.dataset.courseSaveAttached !== "true") {
+    const unitsDropdown = wrapper.querySelector(".courseUnitsDropdown");
+    const codeInput = wrapper.querySelector(".courseCode");
+    const topicInput = wrapper.querySelector(".courseTopic");
+    const table = wrapper.querySelector("table");
+
+    if (codeInput && topicInput && unitsDropdown && table) {
+      const triggerSaveCourse = async () => {
+        const code = codeInput.value.trim();
+        const topic = topicInput.value.trim();
+        const units = parseFloat(unitsDropdown.value);
+
+        if (code && !isNaN(units)) {
+          const existingCourseId = wrapper.dataset.courseId;
+
+          if (existingCourseId) {
+            await saveCourse({ semesterId, code, topic, units, courseId: existingCourseId });
+          } else {
+            const newCourseId = await saveCourse({ semesterId, code, topic, units });
+            if (!newCourseId) return;
+
+            wrapper.dataset.courseId = newCourseId;
+
+            await clearEvaluations(semesterId, newCourseId);
+
+            // Save existing evaluation rows (filtered)
+            const candidateRows = table.querySelectorAll("tr:not(.columnTitles):not(#finalGradeRow)");
+            const evalRows = [...candidateRows].filter(r =>
+              r.querySelector('.dueInput') || r.querySelector('.gradeInput') || r.querySelector('.weightInput')
+            );
+            for (const [index, row] of evalRows.entries()) {
+              const name = row.querySelector("td:nth-child(1) input")?.value.trim();
+              const due = row.querySelector(".dueInput")?.value.trim();
+              const grade = row.querySelector(".gradeInput")?.value.trim();
+              const weight = row.querySelector(".weightInput")?.value.trim();
+
+              if (name || due || grade || weight) {
+                await saveEvaluation({ semesterId, courseId: newCourseId, name, due, grade, weight, index });
+              }
+            }
+          }
+        }
+      };
+
+      [codeInput, topicInput, unitsDropdown].forEach((el) => el.addEventListener("blur", triggerSaveCourse));
+      wrapper.dataset.courseSaveAttached = "true";
+    }
+  }
+
   const collapseBtn = wrapper.querySelector(".fullScreen");
   if (collapseBtn) {
     collapseBtn.addEventListener("click", toggleCollapse);
@@ -280,68 +330,12 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
     });
   }
 
-  const semesterId = new URLSearchParams(window.location.search).get("semesterId");
-  const unitsDropdown = newTable.querySelector(".courseUnitsDropdown");
-  const codeInput = newTable.querySelector(".courseCode");
-  const topicInput = newTable.querySelector(".courseTopic");
-
   // Initialize Lucide icons if available
   if (typeof lucide !== 'undefined') {
     lucide.createIcons();
   }
 
   attachEventListeners(newTable);
-
-  if (semesterId && codeInput && topicInput && unitsDropdown) {
-    // Check if course already exists (loaded from database)
-    const existingCourseId = newTable.dataset.courseId;
-    let courseSaved = !!existingCourseId;
-
-    const triggerSaveCourse = async () => {
-      const code = codeInput.value.trim();
-      const topic = topicInput.value.trim();
-      const units = parseFloat(unitsDropdown.value);
-
-      if (code && !isNaN(units)) {
-        const courseId = newTable.dataset.courseId;
-        
-        if (courseId && courseSaved) {
-          // Update existing course
-          await saveCourse({ semesterId, code, topic, units, courseId });
-        } else if (!courseSaved) {
-          // Create new course
-          const newCourseId = await saveCourse({ semesterId, code, topic, units });
-          if (!newCourseId) return;
-
-          newTable.dataset.courseId = newCourseId;
-          courseSaved = true;
-
-          await clearEvaluations(semesterId, newCourseId);
-
-          // Only capture actual evaluation rows (with inputs for due/grade/weight)
-          const candidateRows = newTable.querySelectorAll("tr:not(.columnTitles):not(#finalGradeRow)");
-          const evalRows = [...candidateRows].filter(r => 
-            r.querySelector('.dueInput') || r.querySelector('.gradeInput') || r.querySelector('.weightInput')
-          );
-          for (const [index, row] of evalRows.entries()) {
-            const name = row.querySelector("td:nth-child(1) input")?.value.trim();
-            const due = row.querySelector(".dueInput")?.value.trim();
-            const grade = row.querySelector(".gradeInput")?.value.trim();
-            const weight = row.querySelector(".weightInput")?.value.trim();
-
-            // Skip completely empty rows to avoid saving placeholders
-            if (name || due || grade || weight) {
-              await saveEvaluation({ semesterId, courseId: newCourseId, name, due, grade, weight, index });
-            }
-          }
-        }
-      }
-    };
-
-    [codeInput, topicInput, unitsDropdown].forEach((el) =>
-      el.addEventListener("blur", triggerSaveCourse)
-    );
-  }
 
   return newTable;
 }
