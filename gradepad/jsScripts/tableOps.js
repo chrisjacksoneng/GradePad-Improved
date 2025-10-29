@@ -288,32 +288,40 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
   attachEventListeners(newTable);
 
   if (semesterId && codeInput && topicInput && unitsDropdown) {
-    let courseSaved = false;
+    // Check if course already exists (loaded from database)
+    const existingCourseId = newTable.dataset.courseId;
+    let courseSaved = !!existingCourseId;
 
     const triggerSaveCourse = async () => {
-      if (courseSaved) return;
-
       const code = codeInput.value.trim();
       const topic = topicInput.value.trim();
       const units = parseFloat(unitsDropdown.value);
 
       if (code && !isNaN(units)) {
-        const courseId = await saveCourse({ semesterId, code, topic, units });
-        if (!courseId) return;
+        const courseId = newTable.dataset.courseId;
+        
+        if (courseId && courseSaved) {
+          // Update existing course
+          await saveCourse({ semesterId, code, topic, units, courseId });
+        } else if (!courseSaved) {
+          // Create new course
+          const newCourseId = await saveCourse({ semesterId, code, topic, units });
+          if (!newCourseId) return;
 
-        newTable.dataset.courseId = courseId;
-        courseSaved = true;
+          newTable.dataset.courseId = newCourseId;
+          courseSaved = true;
 
-        await clearEvaluations(semesterId, courseId);
+          await clearEvaluations(semesterId, newCourseId);
 
-        const rows = newTable.querySelectorAll("tr:not(:first-child):not(.columnTitles):not(#finalGradeRow)");
-        for (const [index, row] of [...rows].entries()) {
-          const name = row.querySelector("td:nth-child(1) input")?.value.trim();
-          const due = row.querySelector("td:nth-child(2) input")?.value.trim();
-          const grade = row.querySelector("td:nth-child(3) input")?.value.trim();
-          const weight = row.querySelector("td:nth-child(4) input")?.value.trim();
+          const rows = newTable.querySelectorAll("tr:not(:first-child):not(.columnTitles):not(#finalGradeRow)");
+          for (const [index, row] of [...rows].entries()) {
+            const name = row.querySelector("td:nth-child(1) input")?.value.trim();
+            const due = row.querySelector("td:nth-child(2) input")?.value.trim();
+            const grade = row.querySelector("td:nth-child(3) input")?.value.trim();
+            const weight = row.querySelector("td:nth-child(4) input")?.value.trim();
 
-            await saveEvaluation({ semesterId, courseId, name, due, grade, weight, index });
+            await saveEvaluation({ semesterId, courseId: newCourseId, name, due, grade, weight, index });
+          }
         }
       }
     };

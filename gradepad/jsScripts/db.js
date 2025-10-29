@@ -1,15 +1,73 @@
-// LocalStorage-based database functions
-// Replaces Firestore with browser localStorage
+// Database functions - Uses Firestore for logged-in users, localStorage for guests
+import { db, auth } from './firebase.js';
+import { doc, getDoc, setDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js';
 
-// Helper function to get all data
-function getAllData() {
+// Helper function to get current user
+function getCurrentUser() {
+  return auth.currentUser;
+}
+
+// Helper function to get user data document reference
+function getUserDataRef(userId) {
+  return doc(db, 'users', userId, 'data', 'gradepad');
+}
+
+// Helper function to get all data from Firestore (for logged-in users)
+async function getAllDataFirestore(userId) {
+  try {
+    const userDataRef = getUserDataRef(userId);
+    const docSnap = await getDoc(userDataRef);
+    
+    if (docSnap.exists()) {
+      return docSnap.data();
+    }
+    return { semesters: [] };
+  } catch (error) {
+    console.error('Error loading from Firestore:', error);
+    return { semesters: [] };
+  }
+}
+
+// Helper function to save all data to Firestore (for logged-in users)
+async function saveAllDataFirestore(userId, data) {
+  try {
+    const userDataRef = getUserDataRef(userId);
+    await setDoc(userDataRef, data, { merge: true });
+    console.log('✅ Data saved to Firestore');
+  } catch (error) {
+    console.error('Error saving to Firestore:', error);
+    throw error;
+  }
+}
+
+// Helper function to get all data from localStorage (for guests)
+function getAllDataLocal() {
   const data = localStorage.getItem('gradepad_data');
   return data ? JSON.parse(data) : { semesters: [] };
 }
 
-// Helper function to save all data
-function saveAllData(data) {
+// Helper function to save all data to localStorage (for guests)
+function saveAllDataLocal(data) {
   localStorage.setItem('gradepad_data', JSON.stringify(data));
+}
+
+// Helper function to get all data (checks auth state)
+async function getAllData() {
+  const user = getCurrentUser();
+  if (user) {
+    return await getAllDataFirestore(user.uid);
+  }
+  return getAllDataLocal();
+}
+
+// Helper function to save all data (checks auth state)
+async function saveAllData(data) {
+  const user = getCurrentUser();
+  if (user) {
+    await saveAllDataFirestore(user.uid, data);
+  } else {
+    saveAllDataLocal(data);
+  }
 }
 
 // Helper function to generate unique IDs
@@ -20,7 +78,7 @@ function generateId() {
 // --- Save Semester ---
 export async function saveSemester({ name, startDate, endDate, semesterId = null }) {
   try {
-    const data = getAllData();
+    const data = await getAllData();
     
     if (semesterId) {
       // Update existing semester
@@ -48,7 +106,7 @@ export async function saveSemester({ name, startDate, endDate, semesterId = null
       semesterId = newSemester.id;
     }
     
-    saveAllData(data);
+    await saveAllData(data);
     console.log(semesterId ? "✏️ Semester updated:" : "✅ Semester saved:", semesterId);
     return semesterId;
   } catch (error) {
@@ -60,7 +118,7 @@ export async function saveSemester({ name, startDate, endDate, semesterId = null
 // --- Load Semesters ---
 export async function loadSemesters() {
   try {
-    const data = getAllData();
+    const data = await getAllData();
     console.log("✅ Loaded semesters:", data.semesters);
     return data.semesters;
   } catch (error) {
@@ -70,9 +128,9 @@ export async function loadSemesters() {
 }
 
 // --- Save Course ---
-export async function saveCourse({ semesterId, code, topic, units }) {
+export async function saveCourse({ semesterId, code, topic, units, courseId = null }) {
   try {
-    const data = getAllData();
+    const data = await getAllData();
     const semester = data.semesters.find(s => s.id === semesterId);
     
     if (!semester) {
@@ -80,9 +138,24 @@ export async function saveCourse({ semesterId, code, topic, units }) {
       return null;
     }
     
-    const courseId = generateId();
+    if (courseId) {
+      // Update existing course
+      const course = semester.courses.find(c => c.id === courseId);
+      if (course) {
+        course.code = code;
+        course.topic = topic;
+        course.units = units;
+        course.updatedAt = new Date().toISOString();
+        await saveAllData(data);
+        console.log(`✅ Course "${code}" updated`);
+        return courseId;
+      }
+    }
+    
+    // Create new course
+    const newCourseId = generateId();
     const newCourse = {
-      id: courseId,
+      id: newCourseId,
       code,
       topic,
       units,
@@ -91,10 +164,10 @@ export async function saveCourse({ semesterId, code, topic, units }) {
     };
     
     semester.courses.push(newCourse);
-    saveAllData(data);
+    await saveAllData(data);
     
     console.log(`✅ Course "${code}" saved under semester ${semesterId}`);
-    return courseId;
+    return newCourseId;
   } catch (err) {
     console.error("❌ Failed to save course:", err);
     return null;
@@ -104,7 +177,7 @@ export async function saveCourse({ semesterId, code, topic, units }) {
 // --- Save Evaluation ---
 export async function saveEvaluation({ semesterId, courseId, name, due, grade, weight, index }) {
   try {
-    const data = getAllData();
+    const data = await getAllData();
     const semester = data.semesters.find(s => s.id === semesterId);
     if (!semester) return;
     
@@ -126,7 +199,7 @@ export async function saveEvaluation({ semesterId, courseId, name, due, grade, w
     };
     
     course.evaluations.push(evaluation);
-    saveAllData(data);
+    await saveAllData(data);
     
     console.log("✅ Evaluation saved:", evaluation);
   } catch (error) {
@@ -137,7 +210,7 @@ export async function saveEvaluation({ semesterId, courseId, name, due, grade, w
 // --- Load Courses ---
 export async function loadCourses(semesterId) {
   try {
-    const data = getAllData();
+    const data = await getAllData();
     const semester = data.semesters.find(s => s.id === semesterId);
     
     if (!semester) return [];
@@ -158,13 +231,13 @@ export async function loadCourses(semesterId) {
 // --- Delete Course ---
 export async function deleteCourse(semesterId, courseId) {
   try {
-    const data = getAllData();
+    const data = await getAllData();
     const semester = data.semesters.find(s => s.id === semesterId);
     
     if (!semester) return;
     
     semester.courses = semester.courses.filter(c => c.id !== courseId);
-    saveAllData(data);
+    await saveAllData(data);
     
     console.log("✅ Course deleted:", courseId);
   } catch (err) {
@@ -175,9 +248,9 @@ export async function deleteCourse(semesterId, courseId) {
 // --- Delete Semester ---
 export async function deleteSemester(semesterId) {
   try {
-    const data = getAllData();
+    const data = await getAllData();
     data.semesters = data.semesters.filter(s => s.id !== semesterId);
-    saveAllData(data);
+    await saveAllData(data);
     
     console.log(`🗑️ Deleted semester ${semesterId}`);
   } catch (err) {
@@ -188,7 +261,7 @@ export async function deleteSemester(semesterId) {
 // --- Clear Evaluations ---
 export async function clearEvaluations(semesterId, courseId) {
   try {
-    const data = getAllData();
+    const data = await getAllData();
     const semester = data.semesters.find(s => s.id === semesterId);
     if (!semester) return;
     
@@ -196,7 +269,7 @@ export async function clearEvaluations(semesterId, courseId) {
     if (!course) return;
     
     course.evaluations = [];
-    saveAllData(data);
+    await saveAllData(data);
     
     console.log("🧹 Cleared evaluations for course", courseId);
   } catch (error) {
