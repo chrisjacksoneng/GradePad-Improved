@@ -261,7 +261,8 @@
         };
 
         btn?.addEventListener('click', signInClickHandler);
-        getStarted?.addEventListener('click', (e) => { e.preventDefault(); doSignIn(); });
+        // Use named handler so it can be removed when authenticated
+        getStarted?.addEventListener('click', signInClickHandler);
 
         const addGuestButtonIfMissing = () => {
             if (!headerRight) return;
@@ -288,6 +289,12 @@
                     // update references to elements inside the button
                     btn = newBtn;
                 }
+                // Update Get Started -> Go to Grades
+                if (getStarted) {
+                    getStarted.textContent = '→ Go to Grades';
+                    getStarted.href = '/gradepad/grades.html';
+                    getStarted.removeEventListener('click', signInClickHandler);
+                }
                 if (guestBtn && headerRight) {
                     headerRight.removeChild(guestBtn);
                 }
@@ -300,6 +307,13 @@
                     btn.removeEventListener('click', toggleConfirmHandler);
                     btn.removeEventListener('click', signInClickHandler);
                     btn.addEventListener('click', signInClickHandler);
+                }
+                // Restore Get Started -> triggers sign-in
+                if (getStarted) {
+                    getStarted.textContent = '→ Get Started';
+                    getStarted.href = '#';
+                    getStarted.removeEventListener('click', signInClickHandler);
+                    getStarted.addEventListener('click', signInClickHandler);
                 }
                 addGuestButtonIfMissing();
             }
