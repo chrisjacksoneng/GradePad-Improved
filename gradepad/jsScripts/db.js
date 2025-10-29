@@ -8,8 +8,11 @@ function getCurrentUser() {
 }
 
 // Helper function to get user data document reference
+// Using simpler path: users/{userId}/gradepad directly as a document
 function getUserDataRef(userId) {
-  return doc(db, 'users', userId, 'data', 'gradepad');
+  // Store data directly under users collection as a document
+  // This creates: users/{userId} with the data inside
+  return doc(db, 'users', userId);
 }
 
 // Helper function to get all data from Firestore (for logged-in users)
@@ -19,7 +22,15 @@ async function getAllDataFirestore(userId) {
     const docSnap = await getDoc(userDataRef);
     
     if (docSnap.exists()) {
-      return docSnap.data();
+      const docData = docSnap.data();
+      // Data is stored in the gradepad field
+      if (docData.gradepad) {
+        return docData.gradepad;
+      }
+      // Fallback: if data is at root level (old format)
+      if (docData.semesters) {
+        return docData;
+      }
     }
     return { semesters: [] };
   } catch (error) {
@@ -32,10 +43,23 @@ async function getAllDataFirestore(userId) {
 async function saveAllDataFirestore(userId, data) {
   try {
     const userDataRef = getUserDataRef(userId);
-    await setDoc(userDataRef, data, { merge: true });
-    console.log('✅ Data saved to Firestore');
+    console.log('📍 Firestore path:', `users/${userId}`);
+    console.log('📦 Data being saved:', JSON.stringify(data, null, 2));
+    
+    // Store data in a gradepad field to keep it organized
+    await setDoc(userDataRef, { gradepad: data }, { merge: true });
+    console.log('✅ Data saved to Firestore successfully at users/' + userId);
+    return true;
   } catch (error) {
-    console.error('Error saving to Firestore:', error);
+    console.error('❌ Error saving to Firestore:', error);
+    console.error('❌ Error code:', error.code);
+    console.error('❌ Error message:', error.message);
+    
+    // Show user-friendly error
+    if (error.code === 'permission-denied') {
+      console.error('⚠️ Permission denied - check Firestore security rules!');
+      alert('Permission denied. Please check Firestore security rules allow writes for authenticated users.');
+    }
     throw error;
   }
 }
