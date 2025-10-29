@@ -313,12 +313,16 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
 
           await clearEvaluations(semesterId, newCourseId);
 
-          const rows = newTable.querySelectorAll("tr:not(:first-child):not(.columnTitles):not(#finalGradeRow)");
-          for (const [index, row] of [...rows].entries()) {
+          // Only capture actual evaluation rows (with inputs for due/grade/weight)
+          const candidateRows = newTable.querySelectorAll("tr:not(.columnTitles):not(#finalGradeRow)");
+          const evalRows = [...candidateRows].filter(r => 
+            r.querySelector('.dueInput') || r.querySelector('.gradeInput') || r.querySelector('.weightInput')
+          );
+          for (const [index, row] of evalRows.entries()) {
             const name = row.querySelector("td:nth-child(1) input")?.value.trim();
-            const due = row.querySelector("td:nth-child(2) input")?.value.trim();
-            const grade = row.querySelector("td:nth-child(3) input")?.value.trim();
-            const weight = row.querySelector("td:nth-child(4) input")?.value.trim();
+            const due = row.querySelector(".dueInput")?.value.trim();
+            const grade = row.querySelector(".gradeInput")?.value.trim();
+            const weight = row.querySelector(".weightInput")?.value.trim();
 
             await saveEvaluation({ semesterId, courseId: newCourseId, name, due, grade, weight, index });
           }
