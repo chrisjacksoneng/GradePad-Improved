@@ -297,7 +297,13 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><rect x=%224%22 y=%222%22 width=%2216%22 height=%2220%22 rx=%222%22/><path d=%22M8 6h8%22/><circle cx=%228%22 cy=%2210%22 r=%221%22/><circle cx=%2210%22 cy=%2210%22 r=%221%22/><circle cx=%2212%22 cy=%2210%22 r=%221%22/><circle cx=%228%22 cy=%2213%22 r=%221%22/><circle cx=%2210%22 cy=%2213%22 r=%221%22/><circle cx=%2212%22 cy=%2213%22 r=%221%22/><circle cx=%228%22 cy=%2216%22 r=%221%22/><circle cx=%2210%22 cy=%2216%22 r=%221%22/><circle cx=%2212%22 cy=%2216%22 r=%221%22/><rect x=%2214%22 y=%2210%22 width=%224%22 height=%227%22 rx=%221%22/></svg>">
   <title>GradePad</title>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="config.js"></script>
+  <script>
+    // Initialize CONFIG in case config.js doesn't load
+    if (typeof CONFIG === 'undefined') {
+      window.CONFIG = { GROQ_API_KEY: 'YOUR_API_KEY_HERE' };
+    }
+  </script>
+  <script src="config.js" onerror="console.warn('config.js not found - syllabus parsing will use fallback');"></script>
 </head>
 <body>
   <!-- Top Navigation Bar -->
