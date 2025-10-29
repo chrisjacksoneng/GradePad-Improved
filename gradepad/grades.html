@@ -433,27 +433,39 @@
     <button id="addTable">+ Course</button>
   </div>
 
-  <script type="module" src="jsScripts/auth.js"></script>
   <script type="module" src="jsScripts/main.js"></script>
   <script type="module" src="jsScripts/db.js"></script>
 
     <script type="module">
-import { onAuthStateChanged } from "./jsScripts/auth.js";
+import { onAuthChange } from "./jsScripts/firebase.js";
 import { loadCourses } from "./jsScripts/db.js";
 import { createNewTable, attachEventListeners } from "./jsScripts/tableOps.js";
 
 const semesterId = new URLSearchParams(window.location.search).get("semesterId");
 
-onAuthStateChanged(async (user) => {
-  if (!user || !semesterId) return;
+// Load courses when auth state is determined
+onAuthChange(async (user) => {
+  // Wait a bit for auth to fully initialize
+  if (!semesterId) {
+    // No semester ID - show blank table
+    createNewTable([], true);
+    return;
+  }
 
   try {
     const courses = await loadCourses(semesterId);
+    console.log("📚 Loaded courses:", courses);
 
     if (courses.length === 0) {
       // No saved courses → just show blank table using existing HTML one
       createNewTable([], true);
     } else {
+      // Remove the existing hardcoded table first
+      const existingTable = document.querySelector(".table-wrapper");
+      if (existingTable && courses.length > 0) {
+        existingTable.remove();
+      }
+
       courses.forEach((course, index) => {
         const { id, code, topic, units, evaluations = [] } = course;
 
@@ -475,6 +487,8 @@ onAuthStateChanged(async (user) => {
     }
   } catch (err) {
     console.error("❌ Failed to load or render courses:", err);
+    // Show blank table on error
+    createNewTable([], true);
   }
 });
 

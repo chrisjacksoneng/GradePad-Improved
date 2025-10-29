@@ -54,19 +54,32 @@ function saveAllDataLocal(data) {
 // Helper function to get all data (checks auth state)
 async function getAllData() {
   const user = getCurrentUser();
+  console.log('🔍 getAllData - Current user:', user ? user.uid : 'No user (guest)');
   if (user) {
-    return await getAllDataFirestore(user.uid);
+    console.log('📥 Loading from Firestore for user:', user.uid);
+    const data = await getAllDataFirestore(user.uid);
+    console.log('📥 Loaded data from Firestore:', data);
+    return data;
   }
-  return getAllDataLocal();
+  console.log('📥 Loading from localStorage (guest)');
+  const data = getAllDataLocal();
+  console.log('📥 Loaded data from localStorage:', data);
+  return data;
 }
 
 // Helper function to save all data (checks auth state)
 async function saveAllData(data) {
   const user = getCurrentUser();
+  console.log('💾 saveAllData - Current user:', user ? user.uid : 'No user (guest)');
+  console.log('💾 Saving data:', data);
   if (user) {
+    console.log('💾 Saving to Firestore for user:', user.uid);
     await saveAllDataFirestore(user.uid, data);
+    console.log('✅ Data saved to Firestore successfully');
   } else {
+    console.log('💾 Saving to localStorage (guest)');
     saveAllDataLocal(data);
+    console.log('✅ Data saved to localStorage');
   }
 }
 
