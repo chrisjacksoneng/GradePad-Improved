@@ -76,9 +76,15 @@ export function attachEventListeners(wrapper) {
   const table = wrapper.querySelector("table");
   if (!table) return;
 
-  table.querySelectorAll(".gradeInput, .weightInput").forEach((input) =>
+  table.querySelectorAll(".gradeInput, .weightInput").forEach((input) => {
+    input.setAttribute('step','1');
+    input.setAttribute('min','0');
+    input.setAttribute('max','100');
+    input.addEventListener('input', () => {
+      input.value = input.value.replace(/[^0-9]/g, '');
+    });
     input.addEventListener("input", calculateFinalGrade)
-  );
+  });
 
   table.querySelectorAll(".addRowBtn").forEach((btn) =>
     btn.addEventListener("click", addRow)
