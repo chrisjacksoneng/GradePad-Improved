@@ -496,6 +496,8 @@ async function saveSemesterName() {
       console.log("✅ Semester saved:", name, semesterId);
       // Now that we have a semester id, ensure all existing tables are wired to save
       attachAllEventListeners();
+      // Remember last used semester for cross-page navigation
+      try { localStorage.setItem('lastSemesterId', currentSemesterId); } catch(_) {}
     }
   } catch (err) {
     console.error("❌ Failed to save semester:", err);
@@ -520,8 +522,27 @@ if (semesterNameInput) {
 // Load courses and semester name when auth state is determined
 onAuthChange(async (user) => {
   try {
-    // Load semester name if we have a semesterId; if not found, recover gracefully
+    // Load semesters and ensure we have a valid semesterId (persisted across pages)
     const semesters = await loadSemesters();
+    if (!currentSemesterId) {
+      // Try to reuse last visited semester
+      let last = null;
+      try { last = localStorage.getItem('lastSemesterId'); } catch(_) {}
+      if (last && semesters.find(s => s.id === last)) {
+        currentSemesterId = last;
+      } else if (semesters.length > 0) {
+        // Fallback to the most recent semester
+        currentSemesterId = semesters[semesters.length - 1].id;
+      }
+      if (currentSemesterId) {
+        const url = new URL(window.location);
+        url.searchParams.set('semesterId', currentSemesterId);
+        window.history.replaceState({}, '', url);
+        try { localStorage.setItem('lastSemesterId', currentSemesterId); } catch(_) {}
+      }
+    }
+
+    // Load semester name if we have a semesterId; if not found, recover gracefully
     if (currentSemesterId) {
       let semester = semesters.find(s => s.id === currentSemesterId);
       if (!semester && semesterNameInput?.value) {
@@ -542,6 +563,7 @@ onAuthChange(async (user) => {
           url.searchParams.set("semesterId", currentSemesterId);
           window.history.replaceState({}, "", url);
         }
+        try { localStorage.setItem('lastSemesterId', currentSemesterId); } catch(_) {}
       }
     }
     
