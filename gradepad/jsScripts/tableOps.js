@@ -104,7 +104,12 @@ export function attachEventListeners(wrapper) {
         const due = row.querySelector(".dueInput")?.value.trim();
         const grade = row.querySelector(".gradeInput")?.value.trim();
         const weight = row.querySelector(".weightInput")?.value.trim();
-        const index = [...wrapper.querySelectorAll("tr:not(:first-child):not(.columnTitles):not(#finalGradeRow)")].indexOf(row);
+
+        // Only evaluate real evaluation rows
+        const evalRows = [...wrapper.querySelectorAll("tr")].filter(r =>
+          r.querySelector('.dueInput') || r.querySelector('.gradeInput') || r.querySelector('.weightInput')
+        );
+        const index = evalRows.indexOf(row);
 
         console.log("💾 Auto-saving evaluation:", { name, due, grade, weight, index });
         saveEvaluation({ semesterId, courseId, name, due, grade, weight, index });
@@ -324,7 +329,10 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
             const grade = row.querySelector(".gradeInput")?.value.trim();
             const weight = row.querySelector(".weightInput")?.value.trim();
 
-            await saveEvaluation({ semesterId, courseId: newCourseId, name, due, grade, weight, index });
+            // Skip completely empty rows to avoid saving placeholders
+            if (name || due || grade || weight) {
+              await saveEvaluation({ semesterId, courseId: newCourseId, name, due, grade, weight, index });
+            }
           }
         }
       }
