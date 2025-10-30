@@ -320,7 +320,6 @@
   <script src="config.js" onerror="console.warn('config.js not found - syllabus parsing will use fallback');"></script>
 </head>
 <body>
-  <!-- Top Navigation Bar -->
   <header class="top-header">
     <div class="header-left">
       <a href="index.html">
@@ -584,7 +583,6 @@ onAuthChange(async (user) => {
       courses.forEach((course, index) => {
         const { id, code, topic, units, evaluations = [] } = course;
 
-        // 🧠 Use the hardcoded table if it still exists for the first course
         const hasExisting = !!document.querySelector('.table-wrapper');
         const table = createNewTable(evaluations, index === 0 && hasExisting);
 
@@ -615,11 +613,7 @@ onAuthChange(async (user) => {
     </script>
     
     <script>
-      // Initialize Lucide icons
       lucide.createIcons();
-      
-      // Note: Semester name is now handled by the module script above
-      // This function is kept for backward compatibility but shouldn't override the input value
       
       // Update GPA in navigation header
       function updateNavGpa() {
@@ -639,8 +633,6 @@ onAuthChange(async (user) => {
         }
       }
       
-      // Call on page load
-      // Note: updateSemesterName() removed - semester name is now handled by module script above
       updateNavGpa();
       
       // Set up observer to watch for GPA changes
@@ -659,7 +651,6 @@ onAuthChange(async (user) => {
       }
     </script>
     
-    <!-- Groq AI Integration -->
     <script>
       // Test function to list available models
       async function listAvailableModels() {
