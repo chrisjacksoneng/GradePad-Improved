@@ -455,6 +455,7 @@
 import { onAuthChange } from "./jsScripts/firebase.js";
 import { loadCourses, saveSemester, loadSemesters, saveCourse, saveEvaluation } from "./jsScripts/db.js";
 import { createNewTable, attachEventListeners, attachAllEventListeners } from "./jsScripts/tableOps.js";
+import { calculateCurrentGPA } from "./jsScripts/gradeCalc.js";
 
 let currentSemesterId = new URLSearchParams(window.location.search).get("semesterId");
 const semesterNameInput = document.getElementById("semesterName");
@@ -598,6 +599,10 @@ onAuthChange(async (user) => {
 
         attachEventListeners(table);
       });
+      
+      // Recalculate GPA after all courses are loaded with their correct units
+      calculateCurrentGPA();
+      
       // Safety: if for any reason no table wrapper is present, ensure one exists
       if (!document.querySelector('.table-wrapper')) {
         createNewTable([], true);
