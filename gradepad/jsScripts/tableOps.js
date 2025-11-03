@@ -99,6 +99,12 @@ export function attachEventListeners(wrapper) {
     input.addEventListener('input', calculateFinalGrade);
   });
 
+  // Add change listener to units dropdown to immediately recalculate GPA when units change
+  table.querySelectorAll('.courseUnitsDropdown').forEach((dropdown) => {
+    dropdown.removeEventListener("change", calculateCurrentGPA); // avoid duplicates
+    dropdown.addEventListener("change", calculateCurrentGPA);
+  });
+
   table.querySelectorAll(".addRowBtn").forEach((btn) =>
     btn.addEventListener("click", addRow)
   );
