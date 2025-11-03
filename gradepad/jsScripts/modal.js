@@ -215,8 +215,8 @@ export function attachSyllabusButtonListeners(tableElement) {
           newRow.innerHTML = `
             <td><input type="text" value="${assignment.name || 'Assignment'}"></td>
             <td><input type="text" class="dueInput" value="${assignment.dueDate || 'TBD'}"></td>
-            <td><input type="number" class="gradeInput"></td>
-            <td><input type="number" class="weightInput" value="${assignment.weight || 0}"></td>
+            <td><input type="number" class="gradeInput" step="0.01" min="0"></td>
+            <td><input type="number" class="weightInput" step="0.01" min="0" max="100" value="${assignment.weight || 0}"></td>
             <td><span class="lostOutput">—</span></td>
             <td class="actionsColumn">
               <button class="addRowBtn" title="Add row below">+</button>
@@ -318,8 +318,8 @@ export function attachSyllabusButtonListeners(tableElement) {
       newRow.innerHTML = `
         <td><input type="text" value="${name}"></td>
         <td><input type="text" class="dueInput"></td>
-        <td><input type="number" class="gradeInput"></td>
-        <td><input type="number" class="weightInput" value="${weight}"></td>
+        <td><input type="number" class="gradeInput" step="0.01" min="0"></td>
+        <td><input type="number" class="weightInput" step="0.01" min="0" max="100" value="${weight}"></td>
         <td><span class="lostOutput">—</span></td>
         <td class="actionsColumn">
           <button class="addRowBtn" title="Add row below">+</button>

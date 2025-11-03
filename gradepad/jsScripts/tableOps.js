@@ -14,8 +14,8 @@ export function addRow(event) {
   newRow.innerHTML = `
     <td><input type="text"></td>
     <td><input type="text" class="dueInput"></td>
-    <td><input type="number" class="gradeInput"></td>
-    <td><input type="number" class="weightInput"></td>
+    <td><input type="number" class="gradeInput" step="0.01" min="0"></td>
+    <td><input type="number" class="weightInput" step="0.01" min="0" max="100"></td>
     <td><span class="lostOutput">—</span></td>
     <td class="actionsColumn">
       <button class="addRowBtn" title="Add row below">+</button>
@@ -77,10 +77,51 @@ export function attachEventListeners(wrapper) {
   if (!table) return;
 
   table.querySelectorAll('.gradeInput').forEach((input) => {
-    input.setAttribute('step','1');
+    input.setAttribute('step','0.01');
     input.setAttribute('min','0');
-    input.addEventListener('input', () => {
-      input.value = input.value.replace(/[^0-9]/g, '');
+    
+    // Store previous value to track changes
+    let previousValue = input.value;
+    
+    input.addEventListener('input', (e) => {
+      const cursorPos = input.selectionStart;
+      const currentValue = input.value;
+      
+      // Remove invalid characters
+      let v = currentValue.replace(/[^0-9.]/g, '');
+      
+      // Remove extra decimal points (keep only the first one)
+      const firstDot = v.indexOf('.');
+      if (firstDot !== -1) {
+        v = v.slice(0, firstDot + 1) + v.slice(firstDot + 1).replace(/\./g, '');
+      }
+      
+      // Only update if sanitized value is different from what user typed
+      if (v !== currentValue) {
+        // Calculate new cursor position based on how many valid chars were before cursor
+        let validCharsBefore = 0;
+        let hasSeenDot = false;
+        for (let i = 0; i < cursorPos && i < currentValue.length; i++) {
+          const char = currentValue[i];
+          if (char >= '0' && char <= '9') {
+            validCharsBefore++;
+          } else if (char === '.' && !hasSeenDot) {
+            validCharsBefore++;
+            hasSeenDot = true;
+          }
+        }
+        
+        input.value = v;
+        previousValue = v;
+        
+        // Set cursor position, ensuring it doesn't exceed the new value length
+        const newCursorPos = Math.min(validCharsBefore, v.length);
+        setTimeout(() => {
+          input.setSelectionRange(newCursorPos, newCursorPos);
+        }, 0);
+      } else {
+        previousValue = v;
+      }
     });
     input.addEventListener('input', calculateFinalGrade);
   });
@@ -88,13 +129,49 @@ export function attachEventListeners(wrapper) {
     input.setAttribute('step','0.01');
     input.setAttribute('min','0');
     input.setAttribute('max','100');
-    input.addEventListener('input', () => {
-      let v = input.value.replace(/[^0-9.]/g, '');
+    
+    // Store previous value to track changes
+    let previousValue = input.value;
+    
+    input.addEventListener('input', (e) => {
+      const cursorPos = input.selectionStart;
+      const currentValue = input.value;
+      
+      // Remove invalid characters
+      let v = currentValue.replace(/[^0-9.]/g, '');
+      
+      // Remove extra decimal points (keep only the first one)
       const firstDot = v.indexOf('.');
       if (firstDot !== -1) {
         v = v.slice(0, firstDot + 1) + v.slice(firstDot + 1).replace(/\./g, '');
       }
-      input.value = v;
+      
+      // Only update if sanitized value is different from what user typed
+      if (v !== currentValue) {
+        // Calculate new cursor position based on how many valid chars were before cursor
+        let validCharsBefore = 0;
+        let hasSeenDot = false;
+        for (let i = 0; i < cursorPos && i < currentValue.length; i++) {
+          const char = currentValue[i];
+          if (char >= '0' && char <= '9') {
+            validCharsBefore++;
+          } else if (char === '.' && !hasSeenDot) {
+            validCharsBefore++;
+            hasSeenDot = true;
+          }
+        }
+        
+        input.value = v;
+        previousValue = v;
+        
+        // Set cursor position, ensuring it doesn't exceed the new value length
+        const newCursorPos = Math.min(validCharsBefore, v.length);
+        setTimeout(() => {
+          input.setSelectionRange(newCursorPos, newCursorPos);
+        }, 0);
+      } else {
+        previousValue = v;
+      }
     });
     input.addEventListener('input', calculateFinalGrade);
   });
@@ -332,7 +409,7 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
       row.innerHTML = `
         <td><input type="text" value="${name}" placeholder="Evaluation ${index + 1}"></td>
         <td><input type="text" class="dueInput" value="${due}"></td>
-        <td><input type="number" class="gradeInput" step="1" min="0" value="${grade}"></td>
+        <td><input type="number" class="gradeInput" step="0.01" min="0" value="${grade}"></td>
         <td><input type="number" class="weightInput" step="0.01" min="0" max="100" value="${weight}"></td>
         <td><span class="lostOutput">—</span></td>
         <td class="actionsColumn">
@@ -351,7 +428,7 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
       row.innerHTML = `
         <td><input type="text" placeholder="Evaluation ${evaluations.length + i + 1}"></td>
         <td><input type="text" class="dueInput"></td>
-        <td><input type="number" class="gradeInput" step="1" min="0"></td>
+        <td><input type="number" class="gradeInput" step="0.01" min="0"></td>
         <td><input type="number" class="weightInput" step="0.01" min="0" max="100"></td>
         <td><span class="lostOutput">—</span></td>
         <td class="actionsColumn">
@@ -368,8 +445,8 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
       row.innerHTML = `
         <td><input type="text" placeholder="Evaluation ${i + 1}"></td>
         <td><input type="text" class="dueInput"></td>
-        <td><input type="text" class="gradeInput"></td>
-        <td><input type="text" class="weightInput"></td>
+        <td><input type="number" class="gradeInput" step="0.01" min="0"></td>
+        <td><input type="number" class="weightInput" step="0.01" min="0" max="100"></td>
         <td><span class="lostOutput">—</span></td>
         <td class="actionsColumn">
           <button class="addRowBtn" title="Add row below">+</button>
