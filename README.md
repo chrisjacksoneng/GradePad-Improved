@@ -2,9 +2,6 @@
 
 An intelligent academic management system that tracks semesters, courses, and assignments with real-time GPA calculation, AI-powered syllabus parsing, and seamless cloud synchronization.
 
-## 🌐 Live Demo
-
-[View Live Site]([https://gradepad.netlify.app/](url))
 
 ## Overview
 
@@ -26,10 +23,7 @@ GradePad is more than a grade calculator—it's a complete academic organizer th
   - **Logged-in Users**: Cloud sync via Firebase Firestore across devices
 - **Offline-First Architecture**: Full functionality without internet connection
 - **Real-Time Synchronization**: Changes sync automatically across devices for logged-in users
-- **Decimal Support**: Precise grade and weight inputs with proper cursor handling
 - **Drag & Drop**: Reorder evaluation rows with intuitive drag-and-drop
-- **Collapsible Tables**: Expand/collapse course tables for better organization
-- **Theme Customization**: Multiple color themes for personalization
 
 ## 🛠️ Tech Stack
 
