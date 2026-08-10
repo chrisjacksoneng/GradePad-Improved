@@ -103,15 +103,8 @@ document.addEventListener("DOMContentLoaded", () => {
     menuIcon.addEventListener("click", toggleNav);
   }
 
-  const originalDeleteBtn = document.querySelector(".table-wrapper .deleteButton");
-  if (originalDeleteBtn) {
-    originalDeleteBtn.addEventListener("click", () => {
-      const wrapper = originalDeleteBtn.closest(".table-wrapper");
-      if (wrapper && confirm("Are you sure you want to delete this table?")) {
-        wrapper.remove();
-      }
-    });
-  }
+  // The first table's delete button is wired by createNewTable (which also
+  // deletes the course from storage), so it is intentionally not handled here.
 
   const addTableBtn = document.getElementById("addTable");
   if (addTableBtn) {

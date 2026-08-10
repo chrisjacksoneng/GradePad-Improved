@@ -14,6 +14,8 @@ import { reorderEvaluations } from './db.js';
   }
   
   export function setupMoveRowButton(button) {
+    if (button.dataset.moveWired === "true") return;
+    button.dataset.moveWired = "true";
     button.addEventListener("mousedown", function (e) {
       e.preventDefault();
       isDragging = true;

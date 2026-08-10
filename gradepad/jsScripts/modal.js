@@ -145,6 +145,8 @@ export function setupSemesterModal() {
 }
 
 export function attachSyllabusButtonListeners(tableElement) {
+  if (tableElement.dataset.syllabusWired === "true") return;
+
   const syllabusModal = tableElement.querySelector(".syllabusModal");
   const syllabusButton = tableElement.querySelector(".syllabusButton");
   const closeModal = tableElement.querySelector(".syllabusModal .close");
@@ -152,6 +154,10 @@ export function attachSyllabusButtonListeners(tableElement) {
   const syllabusTextbox = tableElement.querySelector(".syllabusTextbox");
 
   if (!syllabusButton || !syllabusModal || !closeModal || !parseSyllabusButton || !syllabusTextbox) return;
+
+  // Only mark as wired once the elements exist, so an early call before the
+  // modal is rendered does not permanently block wiring.
+  tableElement.dataset.syllabusWired = "true";
 
   syllabusButton.addEventListener("click", () => {
     syllabusModal.style.display = "flex";

@@ -61,44 +61,19 @@ export function removeRow(event) {
 }
 
 export function attachEventListeners(wrapper) {
-  if (wrapper.dataset.inputListenersAttached !== "true") {
-    wrapper.dataset.inputListenersAttached = "true";
-  
-    const table = wrapper.querySelector("table");
-    if (!table) return;
-  
-    table.querySelectorAll(".gradeInput, .weightInput").forEach((input) =>
-      input.addEventListener("input", calculateFinalGrade)
-    );
-  
-    table.querySelectorAll(".addRowBtn").forEach((btn) =>
-      btn.addEventListener("click", addRow)
-    );
-  
-    table.querySelectorAll(".removeRowBtn").forEach((btn) =>
-      btn.addEventListener("click", removeRow)
-    );
-  
-    table.querySelectorAll(".moveRowBtn").forEach((btn) =>
-      setupMoveRowButton(btn)
-    );
-  
-    const collapseBtn = wrapper.querySelector(".fullScreen");
-    if (collapseBtn) {
-      collapseBtn.addEventListener("click", toggleCollapse);
-    }
-  
-    attachSyllabusButtonListeners(wrapper);
-  }
-  
-
   const table = wrapper.querySelector("table");
   if (!table) return;
 
+  // Every attachment below is guarded per element, so this can be called again
+  // after rows are added (or on re-render) and it wires only the new elements
+  // instead of stacking duplicate listeners that fire calculations and saves
+  // multiple times.
   table.querySelectorAll('.gradeInput').forEach((input) => {
+    if (input.dataset.calcWired === "true") return;
+    input.dataset.calcWired = "true";
     input.setAttribute('step','0.01');
     input.setAttribute('min','0');
-    
+
     // Store previous value to track changes
     let previousValue = input.value;
     
@@ -145,10 +120,12 @@ export function attachEventListeners(wrapper) {
     input.addEventListener('input', calculateFinalGrade);
   });
   table.querySelectorAll('.weightInput').forEach((input) => {
+    if (input.dataset.calcWired === "true") return;
+    input.dataset.calcWired = "true";
     input.setAttribute('step','0.01');
     input.setAttribute('min','0');
     input.setAttribute('max','100');
-    
+
     // Store previous value to track changes
     let previousValue = input.value;
     
@@ -201,14 +178,19 @@ export function attachEventListeners(wrapper) {
     dropdown.addEventListener("change", calculateCurrentGPA);
   });
 
-  table.querySelectorAll(".addRowBtn").forEach((btn) =>
-    btn.addEventListener("click", addRow)
-  );
+  table.querySelectorAll(".addRowBtn").forEach((btn) => {
+    if (btn.dataset.wired === "true") return;
+    btn.dataset.wired = "true";
+    btn.addEventListener("click", addRow);
+  });
 
-  table.querySelectorAll(".removeRowBtn").forEach((btn) =>
-    btn.addEventListener("click", removeRow)
-  );
+  table.querySelectorAll(".removeRowBtn").forEach((btn) => {
+    if (btn.dataset.wired === "true") return;
+    btn.dataset.wired = "true";
+    btn.addEventListener("click", removeRow);
+  });
 
+  // setupMoveRowButton is idempotent per button.
   table.querySelectorAll(".moveRowBtn").forEach((btn) =>
     setupMoveRowButton(btn)
   );
@@ -296,7 +278,8 @@ export function attachEventListeners(wrapper) {
   }
 
   const collapseBtn = wrapper.querySelector(".fullScreen");
-  if (collapseBtn) {
+  if (collapseBtn && collapseBtn.dataset.wired !== "true") {
+    collapseBtn.dataset.wired = "true";
     collapseBtn.addEventListener("click", toggleCollapse);
   }
 
@@ -476,6 +459,8 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
           deleteCourse(semesterId, courseId);
         }
         newTable.remove();
+        // Recompute the nav GPA so the deleted course stops counting.
+        calculateCurrentGPA();
       }
     });
   }
