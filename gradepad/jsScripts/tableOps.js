@@ -396,10 +396,10 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
       // correct stored record rather than a positional index.
       if (id) row.dataset.evalId = id;
       row.innerHTML = `
-        <td><input type="text" value="${name}" placeholder="Evaluation ${index + 1}"></td>
-        <td><input type="text" class="dueInput" value="${due}"></td>
-        <td><input type="number" class="gradeInput" step="0.01" min="0" value="${grade}"></td>
-        <td><input type="number" class="weightInput" step="0.01" min="0" max="100" value="${weight}"></td>
+        <td><input type="text" placeholder="Evaluation ${index + 1}"></td>
+        <td><input type="text" class="dueInput"></td>
+        <td><input type="number" class="gradeInput" step="0.01" min="0"></td>
+        <td><input type="number" class="weightInput" step="0.01" min="0" max="100"></td>
         <td><span class="lostOutput">—</span></td>
         <td class="actionsColumn">
           <button class="addRowBtn" title="Add row below">+</button>
@@ -407,6 +407,12 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
           <button class="moveRowBtn" title="Move selected row">&#9776;</button>
         </td>
       `;
+      // Set saved values as properties, never interpolated into HTML, so a
+      // stored value like `"><img onerror=...>` cannot execute on load.
+      row.querySelector("td:nth-child(1) input").value = name;
+      row.querySelector(".dueInput").value = due;
+      row.querySelector(".gradeInput").value = grade;
+      row.querySelector(".weightInput").value = weight;
       finalRow.before(row);
     });
     // Pad with blank rows up to minimum of 3

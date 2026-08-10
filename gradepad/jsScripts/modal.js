@@ -219,10 +219,10 @@ export function attachSyllabusButtonListeners(tableElement) {
         filtered.forEach(assignment => {
           const newRow = document.createElement("tr");
           newRow.innerHTML = `
-            <td><input type="text" value="${assignment.name || 'Assignment'}"></td>
-            <td><input type="text" class="dueInput" value="${assignment.dueDate || 'TBD'}"></td>
+            <td><input type="text"></td>
+            <td><input type="text" class="dueInput"></td>
             <td><input type="number" class="gradeInput" step="0.01" min="0"></td>
-            <td><input type="number" class="weightInput" step="0.01" min="0" max="100" value="${assignment.weight || 0}"></td>
+            <td><input type="number" class="weightInput" step="0.01" min="0" max="100"></td>
             <td><span class="lostOutput">—</span></td>
             <td class="actionsColumn">
               <button class="addRowBtn" title="Add row below">+</button>
@@ -230,6 +230,11 @@ export function attachSyllabusButtonListeners(tableElement) {
               <button class="moveRowBtn" title="Move selected row">&#9776;</button>
             </td>
           `;
+          // Parser output is attacker-influenceable (a malicious syllabus); set
+          // values as properties so they can never execute as HTML.
+          newRow.querySelector("td:nth-child(1) input").value = assignment.name || 'Assignment';
+          newRow.querySelector(".dueInput").value = assignment.dueDate || 'TBD';
+          newRow.querySelector(".weightInput").value = (assignment.weight ?? 0);
           finalGradeRow.before(newRow);
         });
         
@@ -325,10 +330,10 @@ export function attachSyllabusButtonListeners(tableElement) {
       .forEach(({ name, weight }) => {
       const newRow = document.createElement("tr");
       newRow.innerHTML = `
-        <td><input type="text" value="${name}"></td>
+        <td><input type="text"></td>
         <td><input type="text" class="dueInput"></td>
         <td><input type="number" class="gradeInput" step="0.01" min="0"></td>
-        <td><input type="number" class="weightInput" step="0.01" min="0" max="100" value="${weight}"></td>
+        <td><input type="number" class="weightInput" step="0.01" min="0" max="100"></td>
         <td><span class="lostOutput">—</span></td>
         <td class="actionsColumn">
           <button class="addRowBtn" title="Add row below">+</button>
@@ -336,6 +341,8 @@ export function attachSyllabusButtonListeners(tableElement) {
           <button class="moveRowBtn" title="Move selected row">&#9776;</button>
         </td>
       `;
+      newRow.querySelector("td:nth-child(1) input").value = name;
+      newRow.querySelector(".weightInput").value = weight;
       finalGradeRow.before(newRow);
     });
 
