@@ -20,20 +20,39 @@ function userKey(user) {
   return user ? `user:${user.uid}` : 'guest';
 }
 
-onAuthStateChanged(auth, (user) => {
-  const identityChanged = authReady && userKey(user) !== userKey(currentUser);
-  currentUser = user;
-  if (!authReady) {
-    authReady = true;
-    resolveAuthReady();
+onAuthStateChanged(
+  auth,
+  (user) => {
+    const identityChanged = authReady && userKey(user) !== userKey(currentUser);
+    currentUser = user;
+    if (!authReady) {
+      authReady = true;
+      resolveAuthReady();
+    }
+    // A different identity means the cached document belongs to the wrong store;
+    // drop it so the next operation reloads from the correct place.
+    if (identityChanged) invalidateCache();
+  },
+  (error) => {
+    // If Firebase auth errors out on init, degrade to guest instead of leaving
+    // every read/write hung waiting for an emission that will never come.
+    console.error('Auth state listener error; continuing as guest:', error);
+    if (!authReady) {
+      authReady = true;
+      resolveAuthReady();
+    }
   }
-  // A different identity means the cached document belongs to the wrong store;
-  // drop it so the next operation reloads from the correct place.
-  if (identityChanged) invalidateCache();
-});
+);
 
 async function getUser() {
-  if (!authReady) await authReadyPromise;
+  if (!authReady) {
+    // Never block persistence forever if auth fails to emit; fall back to
+    // whatever auth.currentUser is (null = guest) after a short wait.
+    await Promise.race([
+      authReadyPromise,
+      new Promise((resolve) => setTimeout(resolve, 5000))
+    ]);
+  }
   return currentUser;
 }
 
@@ -96,7 +115,15 @@ function mutate(mutator) {
   return enqueue(async () => {
     const { data, user } = await loadData();
     const result = await mutator(data);
-    await persistFor(user, data);
+    try {
+      await persistFor(user, data);
+    } catch (error) {
+      // The mutator edited the cached document in place; if the write failed,
+      // drop the cache so later reads reload from the store instead of serving
+      // an unpersisted change as if it saved.
+      invalidateCache();
+      throw error;
+    }
     return result;
   });
 }
@@ -264,32 +291,86 @@ export async function saveCourse({ semesterId, code, topic, units, courseId = nu
 }
 
 // --- Save Evaluation ---
-export async function saveEvaluation({ semesterId, courseId, name, due, grade, weight, index }) {
+// Upserts by a stable evaluation id. Callers pass evalId (from the row's
+// dataset) when the row already exists so it is updated in place; otherwise a
+// new id is generated. `index` is stored only for display ordering, never used
+// as an identity key, so reordering or deleting rows can no longer clobber a
+// different evaluation. Returns the evaluation's id so callers can remember it
+// on the row for subsequent edits.
+export async function saveEvaluation({ semesterId, courseId, evalId = null, name, due, grade, weight, index }) {
   try {
-    await mutate((data) => {
+    return await mutate((data) => {
       const semester = data.semesters.find(s => s.id === semesterId);
-      if (!semester) return;
+      if (!semester) return null;
 
       const course = (semester.courses || []).find(c => c.id === courseId);
-      if (!course) return;
+      if (!course) return null;
       if (!Array.isArray(course.evaluations)) course.evaluations = [];
 
-      // Remove existing evaluation at this index if it exists
-      course.evaluations = course.evaluations.filter(e => e.index !== index);
+      const existing = evalId ? course.evaluations.find(e => e.id === evalId) : null;
 
-      // Add new evaluation
-      course.evaluations.push({
-        id: generateId(),
+      if (existing) {
+        existing.name = name ?? '';
+        existing.due = due ?? '';
+        existing.grade = grade ?? '';
+        existing.weight = weight ?? '';
+        if (index != null) existing.index = index;
+        existing.updatedAt = new Date().toISOString();
+        return existing.id;
+      }
+
+      const evaluation = {
+        id: evalId || generateId(),
         name: name ?? '',
         due: due ?? '',
         grade: grade ?? '',
         weight: weight ?? '',
-        index: index ?? 0,
+        index: index != null ? index : course.evaluations.length,
         createdAt: new Date().toISOString()
-      });
+      };
+      course.evaluations.push(evaluation);
+      return evaluation.id;
     });
   } catch (error) {
     console.error('❌ Error saving evaluation:', error);
+    return null;
+  }
+}
+
+// --- Delete Evaluation ---
+export async function deleteEvaluation(semesterId, courseId, evalId) {
+  if (!evalId) return;
+  try {
+    await mutate((data) => {
+      const semester = data.semesters.find(s => s.id === semesterId);
+      if (!semester) return;
+      const course = (semester.courses || []).find(c => c.id === courseId);
+      if (!course || !Array.isArray(course.evaluations)) return;
+      course.evaluations = course.evaluations.filter(e => e.id !== evalId);
+    });
+  } catch (error) {
+    console.error('❌ Failed to delete evaluation:', error);
+  }
+}
+
+// --- Reorder Evaluations ---
+// Persists a new display order by rewriting each evaluation's index to its
+// position in orderedIds. Evaluations not named in orderedIds keep their index.
+export async function reorderEvaluations(semesterId, courseId, orderedIds) {
+  if (!Array.isArray(orderedIds) || orderedIds.length === 0) return;
+  try {
+    await mutate((data) => {
+      const semester = data.semesters.find(s => s.id === semesterId);
+      if (!semester) return;
+      const course = (semester.courses || []).find(c => c.id === courseId);
+      if (!course || !Array.isArray(course.evaluations)) return;
+      const position = new Map(orderedIds.map((id, i) => [id, i]));
+      course.evaluations.forEach(e => {
+        if (position.has(e.id)) e.index = position.get(e.id);
+      });
+    });
+  } catch (error) {
+    console.error('❌ Failed to reorder evaluations:', error);
   }
 }
 

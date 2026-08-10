@@ -248,14 +248,17 @@ export function attachSyllabusButtonListeners(tableElement) {
               wrapper.dataset.courseId = courseId;
               await clearEvaluations(semesterId, courseId);
 
-              const evalRows = [...table.querySelectorAll("tr:not(.columnTitles):not(#finalGradeRow)")];
+              const evalRows = [...table.querySelectorAll("tr")].filter(r =>
+                r.querySelector('.dueInput') || r.querySelector('.gradeInput') || r.querySelector('.weightInput')
+              );
               for (const [index, row] of evalRows.entries()) {
                 const name = row.querySelector("td:nth-child(1) input")?.value?.trim() || "";
                 const due = row.querySelector(".dueInput")?.value?.trim() || "";
                 const grade = row.querySelector(".gradeInput")?.value?.trim() || "";
                 const weight = row.querySelector(".weightInput")?.value?.trim() || "";
                 if (name || due || grade || weight) {
-                  await saveEvaluation({ semesterId, courseId, name, due, grade, weight, index });
+                  const savedId = await saveEvaluation({ semesterId, courseId, evalId: row.dataset.evalId || null, name, due, grade, weight, index });
+                  if (savedId) row.dataset.evalId = savedId;
                 }
               }
             }
@@ -351,14 +354,17 @@ export function attachSyllabusButtonListeners(tableElement) {
           wrapper.dataset.courseId = courseId;
           await clearEvaluations(semesterId, courseId);
 
-          const evalRows = [...table.querySelectorAll("tr:not(.columnTitles):not(#finalGradeRow)")];
+          const evalRows = [...table.querySelectorAll("tr")].filter(r =>
+            r.querySelector('.dueInput') || r.querySelector('.gradeInput') || r.querySelector('.weightInput')
+          );
           for (const [index, row] of evalRows.entries()) {
             const name = row.querySelector("td:nth-child(1) input")?.value?.trim() || "";
             const due = row.querySelector(".dueInput")?.value?.trim() || "";
             const grade = row.querySelector(".gradeInput")?.value?.trim() || "";
             const weight = row.querySelector(".weightInput")?.value?.trim() || "";
             if (name || due || grade || weight) {
-              await saveEvaluation({ semesterId, courseId, name, due, grade, weight, index });
+              const savedId = await saveEvaluation({ semesterId, courseId, evalId: row.dataset.evalId || null, name, due, grade, weight, index });
+              if (savedId) row.dataset.evalId = savedId;
             }
           }
         }

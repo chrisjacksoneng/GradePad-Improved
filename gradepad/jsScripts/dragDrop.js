@@ -1,4 +1,6 @@
-function isAllowedRow(row) {
+import { reorderEvaluations } from './db.js';
+
+  function isAllowedRow(row) {
     return !(row.querySelector(".courseCode") || row.classList.contains("columnTitles") || row.id === "finalGradeRow");
   }
   
@@ -54,12 +56,35 @@ function isAllowedRow(row) {
   }
   
   function handleMouseUp() {
+    const releasedRow = draggedRow;
+    const wasDragging = isDragging;
     if (isDragging && draggedRow) {
       draggedRow.style.transform = "";
       draggedRow.classList.remove("dragging");
     }
     isDragging = false;
     draggedRow = null;
+
+    if (wasDragging && releasedRow) persistRowOrder(releasedRow);
+  }
+
+  // Persist the new evaluation order after a drag so it survives reload.
+  function persistRowOrder(row) {
+    const wrapper = row.closest(".table-wrapper");
+    if (!wrapper) return;
+    const courseId = wrapper.dataset.courseId;
+    const semesterId = new URLSearchParams(window.location.search).get("semesterId");
+    if (!courseId || !semesterId) return;
+
+    const table = wrapper.querySelector("table");
+    if (!table) return;
+
+    const orderedIds = [...table.querySelectorAll("tr")]
+      .filter(isAllowedRow)
+      .map((r) => r.dataset.evalId)
+      .filter(Boolean);
+
+    if (orderedIds.length) reorderEvaluations(semesterId, courseId, orderedIds);
   }
   
   // Global state

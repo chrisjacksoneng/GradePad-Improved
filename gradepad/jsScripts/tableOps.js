@@ -2,7 +2,7 @@ import { calculateFinalGrade, calculateCurrentGPA } from './gradeCalc.js';
 import { setupMoveRowButton } from './dragDrop.js';
 import { toggleCollapse } from './utils.js';
 import { attachSyllabusButtonListeners } from './modal.js';
-import { saveCourse, saveEvaluation, deleteCourse, clearEvaluations } from './db.js';
+import { saveCourse, saveEvaluation, deleteCourse, deleteEvaluation, clearEvaluations } from './db.js';
 
 
 export function addRow(event) {
@@ -31,9 +31,21 @@ export function addRow(event) {
 export function removeRow(event) {
   const rowToRemove = event.target.closest("tr");
   const table = rowToRemove.closest("table");
-  const totalRows = table.querySelectorAll("tr:not(:first-child, #finalGradeRow)").length;
+  // Count only real evaluation rows (those with a grade input), so the
+  // column-titles header row does not inflate the count and let the user
+  // delete the final evaluation row.
+  const evalRowCount = table.querySelectorAll("tr .gradeInput").length;
 
-  if (totalRows > 1) {
+  if (evalRowCount > 1) {
+    // Persist the deletion so the row does not resurrect on reload.
+    const wrapper = table.closest(".table-wrapper");
+    const evalId = rowToRemove.dataset.evalId;
+    const courseId = wrapper?.dataset.courseId;
+    const semesterId = new URLSearchParams(window.location.search).get("semesterId");
+    if (evalId && courseId && semesterId) {
+      deleteEvaluation(semesterId, courseId, evalId);
+    }
+
     rowToRemove.remove();
     calculateFinalGrade({ target: table });
   } else {
@@ -200,7 +212,7 @@ export function attachEventListeners(wrapper) {
   if (semesterId) {
     const courseId = wrapper.dataset.courseId;
     if (courseId) {
-      const saveEval = (input) => {
+      const saveEval = async (input) => {
         const row = input.closest("tr");
         const name = row.querySelector("td:nth-child(1) input")?.value.trim();
         const due = row.querySelector(".dueInput")?.value.trim();
@@ -212,10 +224,12 @@ export function attachEventListeners(wrapper) {
           r.querySelector('.dueInput') || r.querySelector('.gradeInput') || r.querySelector('.weightInput')
         );
         const index = evalRows.indexOf(row);
+        const evalId = row.dataset.evalId || null;
 
-        console.log("💾 Auto-saving evaluation:", { name, due, grade, weight, index });
-        saveEvaluation({ semesterId, courseId, name, due, grade, weight, index });
-        
+        const savedId = await saveEvaluation({ semesterId, courseId, evalId, name, due, grade, weight, index });
+        // Remember the id so the next edit updates this row instead of creating
+        // a duplicate evaluation.
+        if (savedId) row.dataset.evalId = savedId;
       };
 
       // Attach listeners ONLY to real evaluation rows
@@ -280,7 +294,8 @@ export function attachEventListeners(wrapper) {
               const weight = row.querySelector(".weightInput")?.value.trim();
 
               if (name || due || grade || weight) {
-                await saveEvaluation({ semesterId, courseId: newCourseId, name, due, grade, weight, index });
+                const savedId = await saveEvaluation({ semesterId, courseId: newCourseId, evalId: row.dataset.evalId || null, name, due, grade, weight, index });
+                if (savedId) row.dataset.evalId = savedId;
               }
             }
           }
@@ -404,8 +419,11 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
 
   if (evaluations.length > 0) {
     evaluations.forEach((evalData, index) => {
-      const { name = "", due = "", grade = "", weight = "" } = evalData;
+      const { id = "", name = "", due = "", grade = "", weight = "" } = evalData;
       const row = document.createElement("tr");
+      // Remember the stable evaluation id so edits/deletes/reorders target the
+      // correct stored record rather than a positional index.
+      if (id) row.dataset.evalId = id;
       row.innerHTML = `
         <td><input type="text" value="${name}" placeholder="Evaluation ${index + 1}"></td>
         <td><input type="text" class="dueInput" value="${due}"></td>
