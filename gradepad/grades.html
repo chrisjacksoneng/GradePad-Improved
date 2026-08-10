@@ -569,7 +569,17 @@ onAuthChange(async (user) => {
     
     // Load courses
     if (!currentSemesterId) {
-      // No semester ID - show blank table
+      // First-time visitor with no semester yet: create a default one so the
+      // save wiring (which is gated on a semesterId) attaches and nothing the
+      // user types is silently lost.
+      const newId = await saveSemester({ name: "My Semester", startDate: null, endDate: null });
+      if (newId) {
+        currentSemesterId = newId;
+        const url = new URL(window.location);
+        url.searchParams.set("semesterId", currentSemesterId);
+        window.history.replaceState({}, "", url);
+        try { localStorage.setItem('lastSemesterId', currentSemesterId); } catch (_) {}
+      }
       createNewTable([], true);
       return;
     }

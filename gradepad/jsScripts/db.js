@@ -52,6 +52,12 @@ async function getUser() {
       authReadyPromise,
       new Promise((resolve) => setTimeout(resolve, 5000))
     ]);
+    // If the wait timed out without any emission, commit to guest once so
+    // later calls return immediately instead of each re-waiting the timeout.
+    if (!authReady) {
+      authReady = true;
+      resolveAuthReady();
+    }
   }
   return currentUser;
 }

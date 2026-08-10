@@ -23,6 +23,7 @@ import { reorderEvaluations } from './db.js';
       const tbody = draggedRow.parentNode;
       const allowedRows = Array.from(tbody.querySelectorAll("tr")).filter(isAllowedRow);
       originalIndex = allowedRows.indexOf(draggedRow);
+      didReorder = false;
       draggedRow.classList.add("dragging");
     });
   }
@@ -41,6 +42,7 @@ import { reorderEvaluations } from './db.js';
       if (e.clientY < rect.top + rect.height / 2) {
         draggedRow.style.transform = "";
         requestAnimationFrame(() => tbody.insertBefore(draggedRow, prevRow));
+        didReorder = true;
         initialY = e.clientY;
       }
     }
@@ -50,6 +52,7 @@ import { reorderEvaluations } from './db.js';
       if (e.clientY > rect.top + rect.height / 2) {
         draggedRow.style.transform = "";
         requestAnimationFrame(() => tbody.insertBefore(draggedRow, nextRow.nextElementSibling));
+        didReorder = true;
         initialY = e.clientY;
       }
     }
@@ -65,7 +68,7 @@ import { reorderEvaluations } from './db.js';
     isDragging = false;
     draggedRow = null;
 
-    if (wasDragging && releasedRow) persistRowOrder(releasedRow);
+    if (wasDragging && releasedRow && didReorder) persistRowOrder(releasedRow);
   }
 
   // Persist the new evaluation order after a drag so it survives reload.
@@ -92,6 +95,7 @@ import { reorderEvaluations } from './db.js';
   let draggedRow = null;
   let initialY = 0;
   let originalIndex = -1;
+  let didReorder = false;
   
   document.addEventListener("mousemove", handleMouseMove);
   document.addEventListener("mouseup", handleMouseUp);

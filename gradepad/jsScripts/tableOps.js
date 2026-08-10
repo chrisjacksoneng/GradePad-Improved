@@ -2,7 +2,14 @@ import { calculateFinalGrade, calculateCurrentGPA } from './gradeCalc.js';
 import { setupMoveRowButton } from './dragDrop.js';
 import { toggleCollapse } from './utils.js';
 import { attachSyllabusButtonListeners } from './modal.js';
-import { saveCourse, saveEvaluation, deleteCourse, deleteEvaluation, clearEvaluations } from './db.js';
+import { saveCourse, saveEvaluation, deleteCourse, deleteEvaluation } from './db.js';
+
+// Client-side stable id for a new evaluation row, stamped synchronously so
+// concurrent saves for the same row upsert one record instead of duplicating.
+function newEvalId() {
+  return (globalThis.crypto?.randomUUID?.() ||
+    (Date.now().toString(36) + Math.random().toString(36).slice(2)));
+}
 
 
 export function addRow(event) {
@@ -206,105 +213,86 @@ export function attachEventListeners(wrapper) {
     setupMoveRowButton(btn)
   );
 
-  // 👇 All this moved inside the same listener gate
   const semesterId = new URLSearchParams(window.location.search).get("semesterId");
 
-  if (semesterId) {
-    const courseId = wrapper.dataset.courseId;
-    if (courseId) {
-      const saveEval = async (input) => {
-        const row = input.closest("tr");
-        const name = row.querySelector("td:nth-child(1) input")?.value.trim();
-        const due = row.querySelector(".dueInput")?.value.trim();
-        const grade = row.querySelector(".gradeInput")?.value.trim();
-        const weight = row.querySelector(".weightInput")?.value.trim();
+  // Wire up persistence once per wrapper. A single delegated focusout listener
+  // covers every current and future evaluation row (so added rows are saved
+  // without re-attaching), and the course record is created lazily on the first
+  // edit so a table filled with only grades is never silently lost.
+  if (semesterId && wrapper.dataset.saveWiringAttached !== "true") {
+    wrapper.dataset.saveWiringAttached = "true";
 
-        // Only evaluate real evaluation rows
-        const evalRows = [...wrapper.querySelectorAll("tr")].filter(r =>
-          r.querySelector('.dueInput') || r.querySelector('.gradeInput') || r.querySelector('.weightInput')
-        );
-        const index = evalRows.indexOf(row);
-        const evalId = row.dataset.evalId || null;
+    const codeInput = wrapper.querySelector(".courseCode");
+    const topicInput = wrapper.querySelector(".courseTopic");
+    const unitsDropdown = wrapper.querySelector(".courseUnitsDropdown");
 
-        const savedId = await saveEvaluation({ semesterId, courseId, evalId, name, due, grade, weight, index });
-        // Remember the id so the next edit updates this row instead of creating
-        // a duplicate evaluation.
-        if (savedId) row.dataset.evalId = savedId;
-      };
+    // Create the course exactly once, even under rapid concurrent blurs, so two
+    // quick edits cannot each create a duplicate course.
+    const ensureCourse = () => {
+      if (wrapper.dataset.courseId) return Promise.resolve(wrapper.dataset.courseId);
+      if (!wrapper._coursePromise) {
+        const code = codeInput?.value.trim() || "";
+        const topic = topicInput?.value.trim() || "";
+        const units = parseFloat(unitsDropdown?.value || "0.50");
+        wrapper._coursePromise = Promise.resolve(saveCourse({ semesterId, code, topic, units }))
+          .then((newId) => {
+            if (newId) wrapper.dataset.courseId = newId;
+            wrapper._coursePromise = null;
+            return newId || null;
+          })
+          .catch(() => { wrapper._coursePromise = null; return null; });
+      }
+      return wrapper._coursePromise;
+    };
 
-      // Attach listeners ONLY to real evaluation rows
+    // Persist course-header edits. Creates the course if needed; no longer
+    // requires a 2+ character code before anything is saved.
+    const saveCourseHeader = async () => {
+      const code = codeInput?.value.trim() || "";
+      const topic = topicInput?.value.trim() || "";
+      const units = parseFloat(unitsDropdown?.value || "0.50");
+      const courseId = await ensureCourse();
+      if (courseId) await saveCourse({ semesterId, code, topic, units, courseId });
+    };
+    [codeInput, topicInput, unitsDropdown].forEach((el) => el && el.addEventListener("blur", saveCourseHeader));
+
+    // Persist one evaluation row, creating the course on first edit.
+    const saveEvalRow = async (row) => {
+      const name = row.querySelector("td:nth-child(1) input")?.value.trim();
+      const due = row.querySelector(".dueInput")?.value.trim();
+      const grade = row.querySelector(".gradeInput")?.value.trim();
+      const weight = row.querySelector(".weightInput")?.value.trim();
+      if (!name && !due && !grade && !weight) return;
+
+      // Stamp a stable id synchronously (before any await) so two quick
+      // blur-saves on the same new row upsert one record instead of each
+      // inserting a duplicate.
+      if (!row.dataset.evalId) row.dataset.evalId = newEvalId();
+      const evalId = row.dataset.evalId;
+
+      const courseId = await ensureCourse();
+      if (!courseId) return;
+
       const evalRows = [...wrapper.querySelectorAll("tr")].filter(r =>
         r.querySelector('.dueInput') || r.querySelector('.gradeInput') || r.querySelector('.weightInput')
       );
-      evalRows.forEach(r => {
-        r.querySelectorAll(".dueInput, .gradeInput, .weightInput, td:nth-child(1) input").forEach((input) => {
-          input.addEventListener("blur", () => saveEval(input));
-        });
-      });
-    } else {
-      // Wait for courseId to appear, then attach once
-      const observer = new MutationObserver(() => {
-        if (wrapper.dataset.courseId) {
-          observer.disconnect();
-          attachEventListeners(wrapper); // try again, safely
-        }
-      });
-      observer.observe(wrapper, { attributes: true, attributeFilter: ["data-course-id"] });
-    }
-  }
+      const index = evalRows.indexOf(row);
+      const savedId = await saveEvaluation({ semesterId, courseId, evalId, name, due, grade, weight, index });
+      if (savedId) row.dataset.evalId = savedId;
+    };
 
-  // Add course save listeners when semesterId is available
-  if (semesterId && wrapper.dataset.courseSaveAttached !== "true") {
-    const unitsDropdown = wrapper.querySelector(".courseUnitsDropdown");
-    const codeInput = wrapper.querySelector(".courseCode");
-    const topicInput = wrapper.querySelector(".courseTopic");
-    const table = wrapper.querySelector("table");
-
-    if (codeInput && topicInput && unitsDropdown && table) {
-      const triggerSaveCourse = async () => {
-        const code = codeInput.value.trim();
-        const topic = topicInput.value.trim();
-        const units = parseFloat(unitsDropdown.value);
-
-        // Guard: only create a course when there is meaningful data
-        const hasMeaningfulData = (code.length >= 2 || topic.length >= 2) && !isNaN(units);
-
-        if (hasMeaningfulData) {
-          const existingCourseId = wrapper.dataset.courseId;
-
-          if (existingCourseId) {
-            await saveCourse({ semesterId, code, topic, units, courseId: existingCourseId });
-          } else {
-            const newCourseId = await saveCourse({ semesterId, code, topic, units });
-            if (!newCourseId) return;
-
-            wrapper.dataset.courseId = newCourseId;
-
-            await clearEvaluations(semesterId, newCourseId);
-
-            // Save existing evaluation rows (filtered)
-            const candidateRows = table.querySelectorAll("tr:not(.columnTitles):not(#finalGradeRow)");
-            const evalRows = [...candidateRows].filter(r =>
-              r.querySelector('.dueInput') || r.querySelector('.gradeInput') || r.querySelector('.weightInput')
-            );
-            for (const [index, row] of evalRows.entries()) {
-              const name = row.querySelector("td:nth-child(1) input")?.value.trim();
-              const due = row.querySelector(".dueInput")?.value.trim();
-              const grade = row.querySelector(".gradeInput")?.value.trim();
-              const weight = row.querySelector(".weightInput")?.value.trim();
-
-              if (name || due || grade || weight) {
-                const savedId = await saveEvaluation({ semesterId, courseId: newCourseId, evalId: row.dataset.evalId || null, name, due, grade, weight, index });
-                if (savedId) row.dataset.evalId = savedId;
-              }
-            }
-          }
-        }
-      };
-
-      [codeInput, topicInput, unitsDropdown].forEach((el) => el.addEventListener("blur", triggerSaveCourse));
-      wrapper.dataset.courseSaveAttached = "true";
-    }
+    wrapper.addEventListener("focusout", (e) => {
+      const input = e.target;
+      if (!input.matches?.("input")) return;
+      const row = input.closest("tr");
+      if (!row) return;
+      const rowHasEvalInput = row.querySelector('.dueInput') || row.querySelector('.gradeInput') || row.querySelector('.weightInput');
+      const isEvalInput = input.classList.contains("dueInput") ||
+        input.classList.contains("gradeInput") ||
+        input.classList.contains("weightInput") ||
+        (rowHasEvalInput && input.closest("td")?.cellIndex === 0);
+      if (isEvalInput) saveEvalRow(row);
+    });
   }
 
   const collapseBtn = wrapper.querySelector(".fullScreen");
