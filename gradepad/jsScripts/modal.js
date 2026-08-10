@@ -442,5 +442,3 @@ export function openEditSemesterModal(semesterCard) {
   editingSemesterCard = semesterCard;
   document.getElementById("addSemesterModal").style.display = "block";
 }
-
-export { attachSemesterCardListeners };
