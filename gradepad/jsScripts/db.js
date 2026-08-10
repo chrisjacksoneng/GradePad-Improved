@@ -1,110 +1,170 @@
 // Database functions - Uses Firestore for logged-in users, localStorage for guests
 import { db, auth } from './firebase.js';
 import { doc, getDoc, setDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js';
 
-// Helper function to get current user
-function getCurrentUser() {
-  return auth.currentUser;
+// ---------------------------------------------------------------------------
+// Auth readiness
+// Firebase restores the signed-in session asynchronously after page load, so
+// reading auth.currentUser synchronously returns null for the first ~1s even
+// for a signed-in user. That sent early edits into guest localStorage while the
+// real data lived in Firestore. Instead, resolve the user by waiting for the
+// first onAuthStateChanged emission, and keep tracking changes after that.
+// ---------------------------------------------------------------------------
+let authReady = false;
+let currentUser = null;
+let resolveAuthReady;
+const authReadyPromise = new Promise((resolve) => { resolveAuthReady = resolve; });
+
+function userKey(user) {
+  return user ? `user:${user.uid}` : 'guest';
 }
 
-// Helper function to get user data document reference
-// Using simpler path: users/{userId}/gradepad directly as a document
-function getUserDataRef(userId) {
-  // Store data directly under users collection as a document
-  // This creates: users/{userId} with the data inside
-  return doc(db, 'users', userId);
+onAuthStateChanged(auth, (user) => {
+  const identityChanged = authReady && userKey(user) !== userKey(currentUser);
+  currentUser = user;
+  if (!authReady) {
+    authReady = true;
+    resolveAuthReady();
+  }
+  // A different identity means the cached document belongs to the wrong store;
+  // drop it so the next operation reloads from the correct place.
+  if (identityChanged) invalidateCache();
+});
+
+async function getUser() {
+  if (!authReady) await authReadyPromise;
+  return currentUser;
 }
 
-// Helper function to get all data from Firestore (for logged-in users)
-async function getAllDataFirestore(userId) {
-  try {
-    const userDataRef = getUserDataRef(userId);
-    const docSnap = await getDoc(userDataRef);
-    
-    if (docSnap.exists()) {
-      const docData = docSnap.data();
-      // Data is stored in the gradepad field
-      if (docData.gradepad) {
-        return docData.gradepad;
-      }
-      // Fallback: if data is at root level (old format)
-      if (docData.semesters) {
-        return docData;
-      }
-    }
-    return { semesters: [] };
-  } catch (error) {
-    console.error('Error loading from Firestore:', error);
-    return { semesters: [] };
+// ---------------------------------------------------------------------------
+// In-memory document cache + serialized operation queue
+// Every read and write runs through a single promise chain, so overlapping
+// saves can no longer read-modify-write over each other and drop edits within a
+// tab. The whole gradepad document is cached in memory and reused instead of
+// being re-read (and possibly re-read stale) on every mutation.
+// ---------------------------------------------------------------------------
+let cachedData = null;
+let cachedKey = null;
+let opQueue = Promise.resolve();
+
+function invalidateCache() {
+  cachedData = null;
+  cachedKey = null;
+}
+
+function enqueue(task) {
+  const run = opQueue.then(() => task());
+  // Keep the chain alive even if a task rejects, so one failure does not stall
+  // every later operation.
+  opQueue = run.then(() => {}, () => {});
+  return run;
+}
+
+async function loadData() {
+  const user = await getUser();
+  const key = userKey(user);
+  if (cachedData && cachedKey === key) {
+    return { data: cachedData, user };
+  }
+  let data = user ? await getAllDataFirestore(user.uid) : getAllDataLocal();
+  // Guarantee the shape every mutator relies on, even for partial/legacy docs.
+  if (!data || typeof data !== 'object' || !Array.isArray(data.semesters)) {
+    data = { semesters: [] };
+  }
+  cachedData = data;
+  cachedKey = key;
+  return { data, user };
+}
+
+async function persistFor(user, data) {
+  if (user) {
+    await saveAllDataFirestore(user.uid, data);
+  } else {
+    saveAllDataLocal(data);
   }
 }
 
-// Helper function to save all data to Firestore (for logged-in users)
+// Serialized read: ordered after all pending writes so it reflects them.
+function readData() {
+  return enqueue(() => loadData());
+}
+
+// Serialized read-modify-write. The mutator edits `data` in place and may
+// return a value that is forwarded to the caller.
+function mutate(mutator) {
+  return enqueue(async () => {
+    const { data, user } = await loadData();
+    const result = await mutator(data);
+    await persistFor(user, data);
+    return result;
+  });
+}
+
+// Helper function to get user data document reference
+function getUserDataRef(userId) {
+  // Store data directly under the users collection as a document: users/{userId}
+  return doc(db, 'users', userId);
+}
+
+// Load the whole gradepad document from Firestore. A genuinely missing document
+// returns an empty shape; real errors (network/permissions) propagate so a
+// failed read never causes an empty document to be written back over real data.
+async function getAllDataFirestore(userId) {
+  const userDataRef = getUserDataRef(userId);
+  const docSnap = await getDoc(userDataRef);
+
+  if (docSnap.exists()) {
+    const docData = docSnap.data();
+    // Data is stored in the gradepad field
+    if (docData.gradepad) return docData.gradepad;
+    // Fallback: legacy root-level format
+    if (docData.semesters) return docData;
+  }
+  return { semesters: [] };
+}
+
+// Save the whole gradepad document to Firestore.
 async function saveAllDataFirestore(userId, data) {
   try {
     const userDataRef = getUserDataRef(userId);
-    console.log('📍 Firestore path:', `users/${userId}`);
-    console.log('📦 Data being saved:', JSON.stringify(data, null, 2));
-    
-    // Store data in a gradepad field to keep it organized
     await setDoc(userDataRef, { gradepad: data }, { merge: true });
-    console.log('✅ Data saved to Firestore successfully at users/' + userId);
     return true;
   } catch (error) {
     console.error('❌ Error saving to Firestore:', error);
-    console.error('❌ Error code:', error.code);
-    console.error('❌ Error message:', error.message);
-    
-    // Show user-friendly error
     if (error.code === 'permission-denied') {
-      console.error('⚠️ Permission denied - check Firestore security rules!');
-      alert('Permission denied. Please check Firestore security rules allow writes for authenticated users.');
+      if (typeof alert === 'function') {
+        alert('Permission denied. Please check Firestore security rules allow writes for authenticated users.');
+      }
     }
     throw error;
   }
 }
 
-// Helper function to get all data from localStorage (for guests)
+// Read guest data from localStorage. Corrupt JSON is backed up and treated as
+// empty instead of throwing, which previously bricked every later read and
+// write for that guest.
 function getAllDataLocal() {
-  const data = localStorage.getItem('gradepad_data');
-  return data ? JSON.parse(data) : { semesters: [] };
+  const raw = localStorage.getItem('gradepad_data');
+  if (!raw) return { semesters: [] };
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object') {
+      if (!Array.isArray(parsed.semesters)) parsed.semesters = [];
+      return parsed;
+    }
+    return { semesters: [] };
+  } catch (error) {
+    console.error('❌ Corrupt gradepad_data in localStorage; backing it up and starting fresh:', error);
+    try { localStorage.setItem('gradepad_data_corrupt', raw); } catch (_) {}
+    return { semesters: [] };
+  }
 }
 
-// Helper function to save all data to localStorage (for guests)
+// Save guest data to localStorage.
 function saveAllDataLocal(data) {
   localStorage.setItem('gradepad_data', JSON.stringify(data));
-}
-
-// Helper function to get all data (checks auth state)
-async function getAllData() {
-  const user = getCurrentUser();
-  console.log('🔍 getAllData - Current user:', user ? user.uid : 'No user (guest)');
-  if (user) {
-    console.log('📥 Loading from Firestore for user:', user.uid);
-    const data = await getAllDataFirestore(user.uid);
-    console.log('📥 Loaded data from Firestore:', data);
-    return data;
-  }
-  console.log('📥 Loading from localStorage (guest)');
-  const data = getAllDataLocal();
-  console.log('📥 Loaded data from localStorage:', data);
-  return data;
-}
-
-// Helper function to save all data (checks auth state)
-async function saveAllData(data) {
-  const user = getCurrentUser();
-  console.log('💾 saveAllData - Current user:', user ? user.uid : 'No user (guest)');
-  console.log('💾 Saving data:', data);
-  if (user) {
-    console.log('💾 Saving to Firestore for user:', user.uid);
-    await saveAllDataFirestore(user.uid, data);
-    console.log('✅ Data saved to Firestore successfully');
-  } else {
-    console.log('💾 Saving to localStorage (guest)');
-    saveAllDataLocal(data);
-    console.log('✅ Data saved to localStorage');
-  }
 }
 
 // Helper function to generate unique IDs
@@ -115,21 +175,24 @@ function generateId() {
 // --- Save Semester ---
 export async function saveSemester({ name, startDate, endDate, semesterId = null }) {
   try {
-    const data = await getAllData();
-    
-    if (semesterId) {
-      // Update existing semester
-      const index = data.semesters.findIndex(s => s.id === semesterId);
-      if (index !== -1) {
-        data.semesters[index] = {
-          ...data.semesters[index],
-          name,
-          startDate,
-          endDate,
-          updatedAt: new Date().toISOString()
-        };
+    return await mutate((data) => {
+      if (semesterId) {
+        // Update existing semester. Only overwrite startDate/endDate when a real
+        // value is provided, so callers that omit them (e.g. the semester-name
+        // auto-save passing null) do not wipe stored dates.
+        const index = data.semesters.findIndex(s => s.id === semesterId);
+        if (index !== -1) {
+          data.semesters[index] = {
+            ...data.semesters[index],
+            name,
+            ...(startDate != null ? { startDate } : {}),
+            ...(endDate != null ? { endDate } : {}),
+            updatedAt: new Date().toISOString()
+          };
+        }
+        return semesterId;
       }
-    } else {
+
       // Create new semester
       const newSemester = {
         id: generateId(),
@@ -140,14 +203,10 @@ export async function saveSemester({ name, startDate, endDate, semesterId = null
         courses: []
       };
       data.semesters.push(newSemester);
-      semesterId = newSemester.id;
-    }
-    
-    await saveAllData(data);
-    console.log(semesterId ? "✏️ Semester updated:" : "✅ Semester saved:", semesterId);
-    return semesterId;
+      return newSemester.id;
+    });
   } catch (error) {
-    console.error("❌ Failed to save/update semester:", error);
+    console.error('❌ Failed to save/update semester:', error);
     return null;
   }
 }
@@ -155,11 +214,10 @@ export async function saveSemester({ name, startDate, endDate, semesterId = null
 // --- Load Semesters ---
 export async function loadSemesters() {
   try {
-    const data = await getAllData();
-    console.log("✅ Loaded semesters:", data.semesters);
-    return data.semesters;
+    const { data } = await readData();
+    return data.semesters || [];
   } catch (error) {
-    console.error("❌ Failed to load semesters:", error);
+    console.error('❌ Failed to load semesters:', error);
     return [];
   }
 }
@@ -167,46 +225,40 @@ export async function loadSemesters() {
 // --- Save Course ---
 export async function saveCourse({ semesterId, code, topic, units, courseId = null }) {
   try {
-    const data = await getAllData();
-    const semester = data.semesters.find(s => s.id === semesterId);
-    
-    if (!semester) {
-      console.error("❌ Semester not found:", semesterId);
-      return null;
-    }
-    
-    if (courseId) {
-      // Update existing course
-      const course = semester.courses.find(c => c.id === courseId);
-      if (course) {
-        course.code = code;
-        course.topic = topic;
-        course.units = units;
-        course.updatedAt = new Date().toISOString();
-        await saveAllData(data);
-        console.log(`✅ Course "${code}" updated`);
-        return courseId;
+    return await mutate((data) => {
+      const semester = data.semesters.find(s => s.id === semesterId);
+      if (!semester) {
+        console.error('❌ Semester not found:', semesterId);
+        return null;
       }
-    }
-    
-    // Create new course
-    const newCourseId = generateId();
-    const newCourse = {
-      id: newCourseId,
-      code,
-      topic,
-      units,
-      createdAt: new Date().toISOString(),
-      evaluations: []
-    };
-    
-    semester.courses.push(newCourse);
-    await saveAllData(data);
-    
-    console.log(`✅ Course "${code}" saved under semester ${semesterId}`);
-    return newCourseId;
+      if (!Array.isArray(semester.courses)) semester.courses = [];
+
+      if (courseId) {
+        // Update existing course
+        const course = semester.courses.find(c => c.id === courseId);
+        if (course) {
+          course.code = code;
+          course.topic = topic;
+          course.units = units;
+          course.updatedAt = new Date().toISOString();
+          return courseId;
+        }
+      }
+
+      // Create new course
+      const newCourseId = generateId();
+      semester.courses.push({
+        id: newCourseId,
+        code,
+        topic,
+        units,
+        createdAt: new Date().toISOString(),
+        evaluations: []
+      });
+      return newCourseId;
+    });
   } catch (err) {
-    console.error("❌ Failed to save course:", err);
+    console.error('❌ Failed to save course:', err);
     return null;
   }
 }
@@ -214,53 +266,51 @@ export async function saveCourse({ semesterId, code, topic, units, courseId = nu
 // --- Save Evaluation ---
 export async function saveEvaluation({ semesterId, courseId, name, due, grade, weight, index }) {
   try {
-    const data = await getAllData();
-    const semester = data.semesters.find(s => s.id === semesterId);
-    if (!semester) return;
-    
-    const course = semester.courses.find(c => c.id === courseId);
-    if (!course) return;
-    
-    // Remove existing evaluation at this index if it exists
-    course.evaluations = course.evaluations.filter(e => e.index !== index);
-    
-    // Add new evaluation
-    const evaluation = {
-      id: generateId(),
-      name: name ?? "",
-      due: due ?? "",
-      grade: grade ?? "",
-      weight: weight ?? "",
-      index: index ?? 0,
-      createdAt: new Date().toISOString()
-    };
-    
-    course.evaluations.push(evaluation);
-    await saveAllData(data);
-    
-    console.log("✅ Evaluation saved:", evaluation);
+    await mutate((data) => {
+      const semester = data.semesters.find(s => s.id === semesterId);
+      if (!semester) return;
+
+      const course = (semester.courses || []).find(c => c.id === courseId);
+      if (!course) return;
+      if (!Array.isArray(course.evaluations)) course.evaluations = [];
+
+      // Remove existing evaluation at this index if it exists
+      course.evaluations = course.evaluations.filter(e => e.index !== index);
+
+      // Add new evaluation
+      course.evaluations.push({
+        id: generateId(),
+        name: name ?? '',
+        due: due ?? '',
+        grade: grade ?? '',
+        weight: weight ?? '',
+        index: index ?? 0,
+        createdAt: new Date().toISOString()
+      });
+    });
   } catch (error) {
-    console.error("❌ Error saving evaluation:", error);
+    console.error('❌ Error saving evaluation:', error);
   }
 }
 
 // --- Load Courses ---
 export async function loadCourses(semesterId) {
   try {
-    const data = await getAllData();
+    const { data } = await readData();
     const semester = data.semesters.find(s => s.id === semesterId);
-    
     if (!semester) return [];
-    
-    return semester.courses.map(course => ({
+
+    return (semester.courses || []).map(course => ({
       id: course.id,
       code: course.code,
       topic: course.topic,
       units: course.units,
-      evaluations: course.evaluations.sort((a, b) => (a.index ?? 0) - (b.index ?? 0))
+      evaluations: (course.evaluations || [])
+        .slice()
+        .sort((a, b) => (a.index ?? 0) - (b.index ?? 0))
     }));
   } catch (error) {
-    console.error("❌ Failed to load courses:", error);
+    console.error('❌ Failed to load courses:', error);
     return [];
   }
 }
@@ -268,48 +318,41 @@ export async function loadCourses(semesterId) {
 // --- Delete Course ---
 export async function deleteCourse(semesterId, courseId) {
   try {
-    const data = await getAllData();
-    const semester = data.semesters.find(s => s.id === semesterId);
-    
-    if (!semester) return;
-    
-    semester.courses = semester.courses.filter(c => c.id !== courseId);
-    await saveAllData(data);
-    
-    console.log("✅ Course deleted:", courseId);
+    await mutate((data) => {
+      const semester = data.semesters.find(s => s.id === semesterId);
+      if (!semester) return;
+      semester.courses = (semester.courses || []).filter(c => c.id !== courseId);
+    });
+    console.log('✅ Course deleted:', courseId);
   } catch (err) {
-    console.error("❌ Failed to delete course:", err);
+    console.error('❌ Failed to delete course:', err);
   }
 }
 
 // --- Delete Semester ---
 export async function deleteSemester(semesterId) {
   try {
-    const data = await getAllData();
-    data.semesters = data.semesters.filter(s => s.id !== semesterId);
-    await saveAllData(data);
-    
+    await mutate((data) => {
+      data.semesters = data.semesters.filter(s => s.id !== semesterId);
+    });
     console.log(`🗑️ Deleted semester ${semesterId}`);
   } catch (err) {
-    console.error("❌ Failed to delete semester:", err);
+    console.error('❌ Failed to delete semester:', err);
   }
 }
 
 // --- Clear Evaluations ---
 export async function clearEvaluations(semesterId, courseId) {
   try {
-    const data = await getAllData();
-    const semester = data.semesters.find(s => s.id === semesterId);
-    if (!semester) return;
-    
-    const course = semester.courses.find(c => c.id === courseId);
-    if (!course) return;
-    
-    course.evaluations = [];
-    await saveAllData(data);
-    
-    console.log("🧹 Cleared evaluations for course", courseId);
+    await mutate((data) => {
+      const semester = data.semesters.find(s => s.id === semesterId);
+      if (!semester) return;
+      const course = (semester.courses || []).find(c => c.id === courseId);
+      if (!course) return;
+      course.evaluations = [];
+    });
+    console.log('🧹 Cleared evaluations for course', courseId);
   } catch (error) {
-    console.error("❌ Failed to clear evaluations:", error);
+    console.error('❌ Failed to clear evaluations:', error);
   }
 }
