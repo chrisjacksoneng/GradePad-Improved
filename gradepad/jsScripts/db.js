@@ -78,6 +78,15 @@ function invalidateCache() {
   cachedKey = null;
 }
 
+// Drop the cache when the tab regains focus, so a returning session re-reads the
+// current document (another tab or device may have written in the meantime)
+// before its next read or write.
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') invalidateCache();
+  });
+}
+
 function enqueue(task) {
   const run = opQueue.then(() => task());
   // Keep the chain alive even if a task rejects, so one failure does not stall
@@ -119,6 +128,11 @@ function readData() {
 // return a value that is forwarded to the caller.
 function mutate(mutator) {
   return enqueue(async () => {
+    // Always write against a freshly read document rather than a possibly
+    // session-stale cache, so a returning tab or a second device cannot silently
+    // overwrite changes made elsewhere via the whole-document write. The
+    // serialized queue still prevents same-tab overlapping writes from racing.
+    invalidateCache();
     const { data, user } = await loadData();
     const result = await mutator(data);
     try {

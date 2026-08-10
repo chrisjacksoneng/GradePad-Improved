@@ -457,6 +457,28 @@ import { calculateCurrentGPA } from "./jsScripts/gradeCalc.js";
 let currentSemesterId = new URLSearchParams(window.location.search).get("semesterId");
 const semesterNameInput = document.getElementById("semesterName");
 
+// Create the active semester at most once, shared between the semester-name
+// auto-save and the first-load bootstrap, so a fast typist cannot create a
+// duplicate default semester.
+let semesterCreating = null;
+function ensureSemester(name) {
+  if (currentSemesterId) return Promise.resolve(currentSemesterId);
+  if (!semesterCreating) {
+    semesterCreating = Promise.resolve(saveSemester({ name: name || "My Semester", startDate: null, endDate: null }))
+      .then((id) => {
+        if (id) {
+          currentSemesterId = id;
+          const url = new URL(window.location);
+          url.searchParams.set("semesterId", id);
+          window.history.replaceState({}, "", url);
+          try { localStorage.setItem('lastSemesterId', id); } catch (_) {}
+        }
+        return id;
+      });
+  }
+  return semesterCreating;
+}
+
 // Function to save semester name when user types
 let saveSemesterTimeout;
 let savingSemester = false;
@@ -471,18 +493,23 @@ async function saveSemesterName() {
   savingSemester = true;
 
   try {
-    // If we don't yet have an id, try to reuse an existing semester with same name
+    // If we don't yet have an id, reuse an existing semester with the same name.
     if (!currentSemesterId) {
       const existing = (await loadSemesters()).find(s => (s.name || "").trim() === name);
       if (existing) currentSemesterId = existing.id;
     }
+    // Otherwise create the one shared semester (deduped with the first-load
+    // bootstrap so two are never created).
+    if (!currentSemesterId) {
+      await ensureSemester(name);
+    }
 
-    // Use existing semesterId if we have one, otherwise create new
-    const semesterId = await saveSemester({ 
-      name, 
-      startDate: null, 
-      endDate: null, 
-      semesterId: currentSemesterId 
+    // Persist the typed name onto the active semester.
+    const semesterId = await saveSemester({
+      name,
+      startDate: null,
+      endDate: null,
+      semesterId: currentSemesterId
     });
     
     if (semesterId) {
@@ -573,17 +600,10 @@ onAuthChange(async (user) => {
     
     // Load courses
     if (!currentSemesterId) {
-      // First-time visitor with no semester yet: create a default one so the
-      // save wiring (which is gated on a semesterId) attaches and nothing the
-      // user types is silently lost.
-      const newId = await saveSemester({ name: "My Semester", startDate: null, endDate: null });
-      if (newId) {
-        currentSemesterId = newId;
-        const url = new URL(window.location);
-        url.searchParams.set("semesterId", currentSemesterId);
-        window.history.replaceState({}, "", url);
-        try { localStorage.setItem('lastSemesterId', currentSemesterId); } catch (_) {}
-      }
+      // First-time visitor with no semester yet: create a default one (shared
+      // with the semester-name auto-save so two are never created) so the save
+      // wiring attaches and nothing the user types is lost.
+      await ensureSemester("My Semester");
       createNewTable([], true);
       return;
     }

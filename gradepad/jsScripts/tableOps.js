@@ -44,13 +44,18 @@ export function removeRow(event) {
   const evalRowCount = table.querySelectorAll("tr .gradeInput").length;
 
   if (evalRowCount > 1) {
-    // Persist the deletion so the row does not resurrect on reload.
+    // Mark the row removed so an in-flight save cannot recreate it, and persist
+    // the deletion (waiting for the course if it is still being created) so the
+    // row does not resurrect on reload.
+    rowToRemove.dataset.removed = "true";
     const wrapper = table.closest(".table-wrapper");
     const evalId = rowToRemove.dataset.evalId;
-    const courseId = wrapper?.dataset.courseId;
     const semesterId = new URLSearchParams(window.location.search).get("semesterId");
-    if (evalId && courseId && semesterId) {
-      deleteEvaluation(semesterId, courseId, evalId);
+    if (evalId && semesterId && wrapper) {
+      Promise.resolve(wrapper._coursePromise || wrapper.dataset.courseId).then((cid) => {
+        const courseId = wrapper.dataset.courseId || cid;
+        if (courseId) deleteEvaluation(semesterId, courseId, evalId);
+      });
     }
 
     rowToRemove.remove();
@@ -240,11 +245,17 @@ export function attachEventListeners(wrapper) {
 
     // Persist one evaluation row, creating the course on first edit.
     const saveEvalRow = async (row) => {
+      if (row.dataset.removed === "true") return;
       const name = row.querySelector("td:nth-child(1) input")?.value.trim();
       const due = row.querySelector(".dueInput")?.value.trim();
       const grade = row.querySelector(".gradeInput")?.value.trim();
       const weight = row.querySelector(".weightInput")?.value.trim();
-      if (!name && !due && !grade && !weight) return;
+      const isEmpty = !name && !due && !grade && !weight;
+
+      // Skip only a brand-new empty row. A row that was already saved and then
+      // cleared must persist the blank values, otherwise the old values come
+      // back on reload.
+      if (isEmpty && !row.dataset.evalId) return;
 
       // Stamp a stable id synchronously (before any await) so two quick
       // blur-saves on the same new row upsert one record instead of each
@@ -254,6 +265,13 @@ export function attachEventListeners(wrapper) {
 
       const courseId = await ensureCourse();
       if (!courseId) return;
+
+      // If the row was removed while its course was still being created, delete
+      // it rather than resurrecting it.
+      if (row.dataset.removed === "true") {
+        deleteEvaluation(semesterId, courseId, evalId);
+        return;
+      }
 
       const evalRows = [...wrapper.querySelectorAll("tr")].filter(r =>
         r.querySelector('.dueInput') || r.querySelector('.gradeInput') || r.querySelector('.weightInput')
