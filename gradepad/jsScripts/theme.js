@@ -1,7 +1,6 @@
 export function setupThemeSelector() {
     const themes = {
       default: {
-        "--bg-image": "url('../assets/backgrounds/default_background.png')",
         "--bg-color": "#ffffff",
         "--text-color": "#000000",
         "--button-bg-color": "#A3CEF1",
@@ -10,7 +9,6 @@ export function setupThemeSelector() {
         "--final-grade-bg": "#A3CEF1",
       },
       waterloo: {
-        "--bg-image": "url('../assets/backgrounds/waterloo_background.png')",
         "--bg-color": "#ffffff",
         "--text-color": "#000000",
         "--button-bg-color": "#fed34c",
@@ -19,7 +17,6 @@ export function setupThemeSelector() {
         "--final-grade-bg": "#fff9c4",
       },
       pastel: {
-        "--bg-image": "url('../assets/backgrounds/purple_background.png')",
         "--bg-color": "#fef6ff",
         "--text-color": "#3e3e3e",
         "--button-bg-color": "#ffc1cc",
@@ -28,7 +25,6 @@ export function setupThemeSelector() {
         "--final-grade-bg": "#e0bbff",
       },
       forest: {
-        "--bg-image": "url('../assets/backgrounds/forest.png')",
         "--bg-color": "#f0f5f1",
         "--text-color": "#2e3d30",
         "--button-bg-color": "#81c784",
@@ -37,7 +33,6 @@ export function setupThemeSelector() {
         "--final-grade-bg": "#c8e6c9",
       },
       purple: {
-        "--bg-image": "url('../assets/backgrounds/purple_background.png')",
         "--bg-color": "#ffffff",
         "--text-color": "#000000",
         "--button-bg-color": "#c77dff",
