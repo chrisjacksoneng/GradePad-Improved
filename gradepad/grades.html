@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Roboto+Mono&display=swap">
   <link rel="stylesheet" href="styles/styles.css">
   <link rel="stylesheet" href="styles/landing.css">
   <style>
@@ -380,6 +382,34 @@
     }
     .save-status.show { opacity: 1; transform: translateY(0); }
     .save-status.saved { color: #6ee7a0; }
+
+    /* ---- Modern type system: Inter for text, JetBrains Mono for course codes,
+       tabular numerals so grades/weights/GPA line up in their columns. ---- */
+    body, input, select, textarea, button, th, td,
+    .brand-name, .gpa-display, #navGpa, #addTable, .courseTopic,
+    .finalGrade, .lostOutput, .courseUnitsDropdown {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+    /* Semester title: modern weight instead of the fallback serif italic */
+    .brand-name, input.brand-name {
+      font-style: normal !important;
+      font-weight: 700 !important;
+      letter-spacing: -0.02em !important;
+    }
+    /* Course codes read as identifiers */
+    .courseCode {
+      font-family: "JetBrains Mono", "Roboto Mono", monospace !important;
+      font-weight: 600 !important;
+      letter-spacing: 0 !important;
+    }
+    /* Tabular figures keep numeric columns aligned without a full mono look */
+    .gradeInput, .weightInput, .courseUnitsDropdown,
+    #navGpa, .gpa-display, .finalGrade, .lostOutput {
+      font-variant-numeric: tabular-nums !important;
+    }
+    #navGpa, .gpa-display, .finalGrade { font-weight: 700 !important; }
+    /* Column headers: a touch stronger and tighter */
+    th { font-weight: 600 !important; letter-spacing: 0.01em !important; }
   </style>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><rect x=%224%22 y=%222%22 width=%2216%22 height=%2220%22 rx=%222%22/><path d=%22M8 6h8%22/><circle cx=%228%22 cy=%2210%22 r=%221%22/><circle cx=%2210%22 cy=%2210%22 r=%221%22/><circle cx=%2212%22 cy=%2210%22 r=%221%22/><circle cx=%228%22 cy=%2213%22 r=%221%22/><circle cx=%2210%22 cy=%2213%22 r=%221%22/><circle cx=%2212%22 cy=%2213%22 r=%221%22/><circle cx=%228%22 cy=%2216%22 r=%221%22/><circle cx=%2210%22 cy=%2216%22 r=%221%22/><circle cx=%2212%22 cy=%2216%22 r=%221%22/><rect x=%2214%22 y=%2210%22 width=%224%22 height=%227%22 rx=%221%22/></svg>">
   <title>GradePad</title>
