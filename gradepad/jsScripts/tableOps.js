@@ -341,10 +341,10 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
             <div class="courseContainer">
               <div class="titleBox">
                 <input type="text" placeholder="Insert Course Code" class="courseCode">
-                <button class="deleteButton" data-tooltip="Delete course"><i data-lucide="trash-2" style="width: 20px; height: 20px;"></i></button>
-                <button class="fullScreen" data-tooltip="Collapse"><i data-lucide="chevron-left" style="width: 20px; height: 20px;"></i></button>
+                <button class="deleteButton"><i data-lucide="trash-2" style="width: 20px; height: 20px;"></i></button>
+                <button class="fullScreen"><i data-lucide="chevron-left" style="width: 20px; height: 20px;"></i></button>
                 <input type="text" placeholder="Insert Course Topic" class="courseTopic">
-                <button class="syllabusButton" data-tooltip="Parse syllabus"><i data-lucide="file-text" style="width: 20px; height: 20px;"></i></button>
+                <button class="syllabusButton"><i data-lucide="file-text" style="width: 20px; height: 20px;"></i></button>
                 <div class="syllabusModal modal">
                   <div class="modal-content">
                     <span class="close">&times;</span>

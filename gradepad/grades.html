@@ -309,23 +309,6 @@
     }
 
     /* ---- UI polish ---- */
-    /* Fast custom tooltips on the icon buttons */
-    [data-tooltip] { position: relative; }
-    [data-tooltip]::after {
-      content: attr(data-tooltip);
-      position: absolute; top: calc(100% + 6px); left: 50%;
-      transform: translateX(-50%) translateY(-2px);
-      background: #1a1a1a; color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      padding: 4px 8px; border-radius: 6px;
-      font-size: 12px; font-weight: 500; white-space: nowrap;
-      pointer-events: none; opacity: 0;
-      transition: opacity 0.15s ease, transform 0.15s ease; z-index: 2000;
-    }
-    [data-tooltip]:hover::after {
-      opacity: 1; transform: translateX(-50%) translateY(0);
-    }
-
     /* Destructive hover: the trash turns red instead of white */
     .deleteButton:hover {
       color: #ff5a5a !important;
@@ -423,10 +406,10 @@
             <div class="courseContainer">
               <div class="titleBox">
                 <input type="text" placeholder="Insert Course Code" class="courseCode">
-                <button class="deleteButton" data-tooltip="Delete course"><i data-lucide="trash-2" style="width: 20px; height: 20px;"></i></button>
-                <button class="fullScreen" data-tooltip="Collapse"><i data-lucide="chevron-left" style="width: 20px; height: 20px;"></i></button>
+                <button class="deleteButton"><i data-lucide="trash-2" style="width: 20px; height: 20px;"></i></button>
+                <button class="fullScreen"><i data-lucide="chevron-left" style="width: 20px; height: 20px;"></i></button>
                 <input type="text" placeholder="Insert Course Topic" class="courseTopic">
-                <button class="syllabusButton" data-tooltip="Parse syllabus"><i data-lucide="file-text" style="width: 20px; height: 20px;"></i></button>
+                <button class="syllabusButton"><i data-lucide="file-text" style="width: 20px; height: 20px;"></i></button>
                 <div class="syllabusModal modal">
                   <div class="modal-content" class="syllabusmodalcontent">
                     <span class="close">&times;</span>
