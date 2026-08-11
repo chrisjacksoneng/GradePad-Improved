@@ -1,6 +1,6 @@
 import { calculateFinalGrade, calculateCurrentGPA } from './gradeCalc.js';
 import { setupMoveRowButton } from './dragDrop.js';
-import { toggleCollapse } from './utils.js';
+import { toggleCollapse, showUndoToast, markSaving, markSaved } from './utils.js';
 import { attachSyllabusButtonListeners } from './modal.js';
 import { saveCourse, saveEvaluation, deleteCourse, deleteEvaluation } from './db.js';
 
@@ -238,8 +238,13 @@ export function attachEventListeners(wrapper) {
       const code = codeInput?.value.trim() || "";
       const topic = topicInput?.value.trim() || "";
       const units = parseFloat(unitsDropdown?.value || "0.50");
-      const courseId = await ensureCourse();
-      if (courseId) await saveCourse({ semesterId, code, topic, units, courseId });
+      markSaving();
+      try {
+        const courseId = await ensureCourse();
+        if (courseId) await saveCourse({ semesterId, code, topic, units, courseId });
+      } finally {
+        markSaved();
+      }
     };
     [codeInput, topicInput, unitsDropdown].forEach((el) => el && el.addEventListener("blur", saveCourseHeader));
 
@@ -263,22 +268,27 @@ export function attachEventListeners(wrapper) {
       if (!row.dataset.evalId) row.dataset.evalId = newEvalId();
       const evalId = row.dataset.evalId;
 
-      const courseId = await ensureCourse();
-      if (!courseId) return;
+      markSaving();
+      try {
+        const courseId = await ensureCourse();
+        if (!courseId) return;
 
-      // If the row was removed while its course was still being created, delete
-      // it rather than resurrecting it.
-      if (row.dataset.removed === "true") {
-        deleteEvaluation(semesterId, courseId, evalId);
-        return;
+        // If the row was removed while its course was still being created,
+        // delete it rather than resurrecting it.
+        if (row.dataset.removed === "true") {
+          deleteEvaluation(semesterId, courseId, evalId);
+          return;
+        }
+
+        const evalRows = [...wrapper.querySelectorAll("tr")].filter(r =>
+          r.querySelector('.dueInput') || r.querySelector('.gradeInput') || r.querySelector('.weightInput')
+        );
+        const index = evalRows.indexOf(row);
+        const savedId = await saveEvaluation({ semesterId, courseId, evalId, name, due, grade, weight, index });
+        if (savedId) row.dataset.evalId = savedId;
+      } finally {
+        markSaved();
       }
-
-      const evalRows = [...wrapper.querySelectorAll("tr")].filter(r =>
-        r.querySelector('.dueInput') || r.querySelector('.gradeInput') || r.querySelector('.weightInput')
-      );
-      const index = evalRows.indexOf(row);
-      const savedId = await saveEvaluation({ semesterId, courseId, evalId, name, due, grade, weight, index });
-      if (savedId) row.dataset.evalId = savedId;
     };
 
     wrapper.addEventListener("focusout", (e) => {
@@ -331,10 +341,10 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
             <div class="courseContainer">
               <div class="titleBox">
                 <input type="text" placeholder="Insert Course Code" class="courseCode">
-                <button class="deleteButton" title="Delete Table"><i data-lucide="trash-2" style="width: 20px; height: 20px;"></i></button>
-                <button class="fullScreen" title="Collapse Table">←</button>
+                <button class="deleteButton" data-tooltip="Delete course"><i data-lucide="trash-2" style="width: 20px; height: 20px;"></i></button>
+                <button class="fullScreen" data-tooltip="Collapse"><i data-lucide="chevron-left" style="width: 20px; height: 20px;"></i></button>
                 <input type="text" placeholder="Insert Course Topic" class="courseTopic">
-                <button class="syllabusButton" title="Parse Syllabus"><i data-lucide="file-text" style="width: 20px; height: 20px;"></i></button>
+                <button class="syllabusButton" data-tooltip="Parse syllabus"><i data-lucide="file-text" style="width: 20px; height: 20px;"></i></button>
                 <div class="syllabusModal modal">
                   <div class="modal-content">
                     <span class="close">&times;</span>
@@ -475,17 +485,25 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
   const deleteBtn = newTable.querySelector(".deleteButton");
   if (deleteBtn) {
     deleteBtn.addEventListener("click", () => {
-      if (confirm("Are you sure you want to delete this table?")) {
-        const semesterId = new URLSearchParams(window.location.search).get("semesterId");
-        const courseId = newTable.dataset.courseId;
+      const semesterId = new URLSearchParams(window.location.search).get("semesterId");
+      const courseId = newTable.dataset.courseId;
+      const parent = newTable.parentNode;
+      const anchor = newTable.nextSibling;
 
-        if (semesterId && courseId) {
-          deleteCourse(semesterId, courseId);
+      // Remove immediately and offer an Undo instead of a blocking confirm().
+      // The course is only deleted from storage once the grace period passes.
+      newTable.remove();
+      calculateCurrentGPA();
+      showUndoToast(
+        "Course deleted",
+        () => {
+          if (parent) parent.insertBefore(newTable, anchor);
+          calculateCurrentGPA();
+        },
+        () => {
+          if (semesterId && courseId) deleteCourse(semesterId, courseId);
         }
-        newTable.remove();
-        // Recompute the nav GPA so the deleted course stops counting.
-        calculateCurrentGPA();
-      }
+      );
     });
   }
 

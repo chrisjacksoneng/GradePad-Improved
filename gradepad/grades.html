@@ -307,6 +307,91 @@
     .header-left a:hover {
       opacity: 0.7 !important;
     }
+
+    /* ---- UI polish ---- */
+    /* Fast custom tooltips on the icon buttons */
+    [data-tooltip] { position: relative; }
+    [data-tooltip]::after {
+      content: attr(data-tooltip);
+      position: absolute; top: calc(100% + 6px); left: 50%;
+      transform: translateX(-50%) translateY(-2px);
+      background: #1a1a1a; color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 4px 8px; border-radius: 6px;
+      font-size: 12px; font-weight: 500; white-space: nowrap;
+      pointer-events: none; opacity: 0;
+      transition: opacity 0.15s ease, transform 0.15s ease; z-index: 2000;
+    }
+    [data-tooltip]:hover::after {
+      opacity: 1; transform: translateX(-50%) translateY(0);
+    }
+
+    /* Destructive hover: the trash turns red instead of white */
+    .deleteButton:hover {
+      color: #ff5a5a !important;
+      background: rgba(255, 90, 90, 0.12) !important;
+      box-shadow: 0 0 16px rgba(255, 90, 90, 0.35) !important;
+    }
+    .deleteButton:hover svg { stroke: #ff5a5a !important; }
+
+    /* Collapse chevron rotates when the table is collapsed */
+    .fullScreen svg { transition: transform 0.2s ease; }
+    table.collapsed .fullScreen svg { transform: rotate(180deg); }
+
+    /* Hover affordances for the row and + Course buttons */
+    .addRowBtn, .removeRowBtn, .moveRowBtn {
+      transition: transform 0.12s ease, background 0.12s ease; border-radius: 6px;
+    }
+    .addRowBtn:hover, .moveRowBtn:hover {
+      background: rgba(255, 255, 255, 0.12) !important; transform: scale(1.12);
+    }
+    .removeRowBtn:hover {
+      background: rgba(255, 90, 90, 0.15) !important; color: #ff5a5a !important; transform: scale(1.12);
+    }
+    #addTable { transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease; }
+    #addTable:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(255, 255, 255, 0.15) !important;
+    }
+
+    /* Focus ring on inputs against the dark background */
+    .table-wrapper input:focus, #semesterName:focus {
+      outline: 2px solid rgba(120, 170, 255, 0.75) !important;
+      outline-offset: 1px; border-radius: 3px;
+    }
+
+    /* Undo toast */
+    #toastContainer {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; gap: 8px; z-index: 3000;
+    }
+    .toast {
+      display: flex; align-items: center; gap: 14px;
+      background: #1a1a1a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 10px 14px; border-radius: 10px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      opacity: 0; transform: translateY(8px);
+      transition: opacity 0.2s ease, transform 0.2s ease; font-size: 14px;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast-undo {
+      background: none; border: none; color: #7aa2ff;
+      font-weight: 700; cursor: pointer; font-size: 14px; padding: 2px 4px;
+    }
+    .toast-undo:hover { text-decoration: underline; }
+
+    /* Save-status pill */
+    .save-status {
+      position: fixed; bottom: 20px; right: 20px;
+      background: rgba(26, 26, 26, 0.95); color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 6px 12px; border-radius: 20px;
+      font-size: 13px; font-weight: 600;
+      opacity: 0; transform: translateY(6px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 3000; pointer-events: none;
+    }
+    .save-status.show { opacity: 1; transform: translateY(0); }
+    .save-status.saved { color: #6ee7a0; }
   </style>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><rect x=%224%22 y=%222%22 width=%2216%22 height=%2220%22 rx=%222%22/><path d=%22M8 6h8%22/><circle cx=%228%22 cy=%2210%22 r=%221%22/><circle cx=%2210%22 cy=%2210%22 r=%221%22/><circle cx=%2212%22 cy=%2210%22 r=%221%22/><circle cx=%228%22 cy=%2213%22 r=%221%22/><circle cx=%2210%22 cy=%2213%22 r=%221%22/><circle cx=%2212%22 cy=%2213%22 r=%221%22/><circle cx=%228%22 cy=%2216%22 r=%221%22/><circle cx=%2210%22 cy=%2216%22 r=%221%22/><circle cx=%2212%22 cy=%2216%22 r=%221%22/><rect x=%2214%22 y=%2210%22 width=%224%22 height=%227%22 rx=%221%22/></svg>">
   <title>GradePad</title>
@@ -338,10 +423,10 @@
             <div class="courseContainer">
               <div class="titleBox">
                 <input type="text" placeholder="Insert Course Code" class="courseCode">
-                <button class="deleteButton" title="Delete Table"><i data-lucide="trash-2" style="width: 20px; height: 20px;"></i></button>
-                <button class="fullScreen" title="Collapse Table">←</button>
+                <button class="deleteButton" data-tooltip="Delete course"><i data-lucide="trash-2" style="width: 20px; height: 20px;"></i></button>
+                <button class="fullScreen" data-tooltip="Collapse"><i data-lucide="chevron-left" style="width: 20px; height: 20px;"></i></button>
                 <input type="text" placeholder="Insert Course Topic" class="courseTopic">
-                <button class="syllabusButton" title="Parse Syllabus"><i data-lucide="file-text" style="width: 20px; height: 20px;"></i></button>
+                <button class="syllabusButton" data-tooltip="Parse syllabus"><i data-lucide="file-text" style="width: 20px; height: 20px;"></i></button>
                 <div class="syllabusModal modal">
                   <div class="modal-content" class="syllabusmodalcontent">
                     <span class="close">&times;</span>
