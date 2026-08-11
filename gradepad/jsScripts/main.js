@@ -1,13 +1,10 @@
 import { attachAllEventListeners, createNewTable } from './tableOps.js';
-import { setupThemeSelector } from './theme.js';
-import { setupSettingsModal, setupSemesterModal } from './modal.js';
+import { setupSemesterModal } from './modal.js';
 import { toggleNav } from './utils.js';
 
 // 📦 Setup everything once DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
-  setupSettingsModal();
   setupSemesterModal();
-  setupThemeSelector();
   attachAllEventListeners();
 
   const menuIcon = document.getElementById("menuIcon");

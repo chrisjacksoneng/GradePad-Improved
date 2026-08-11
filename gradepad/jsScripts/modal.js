@@ -17,20 +17,6 @@ function formatAsLocalDate(inputDateStr) {
   return `${parseInt(month)}/${parseInt(day)}/${year}`;
 }
 
-export function setupSettingsModal() {
-  const settingsModal = document.getElementById("settingsModal");
-  const settingsBtn = document.getElementById("settingsIcon");
-  const settingsClose = settingsModal?.querySelector(".close");
-
-  if (settingsBtn && settingsModal && settingsClose) {
-    settingsBtn.onclick = () => settingsModal.classList.add("active");
-    settingsClose.onclick = () => settingsModal.classList.remove("active");
-    window.addEventListener("click", (e) => {
-      if (e.target === settingsModal) settingsModal.classList.remove("active");
-    });
-  }
-}
-
 export function setupSemesterModal() {
   const semesterModal = document.getElementById("addSemesterModal");
   const semesterBtn = document.getElementById("addSemester");
