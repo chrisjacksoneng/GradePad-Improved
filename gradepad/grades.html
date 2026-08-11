@@ -325,11 +325,13 @@
     .addRowBtn, .removeRowBtn, .moveRowBtn {
       transition: transform 0.12s ease, background 0.12s ease; border-radius: 6px;
     }
+    /* Opaque hover fills: the row buttons sit on white cells, so a translucent
+       white/red fill would let the cell show through and hide the glyph. */
     .addRowBtn:hover, .moveRowBtn:hover {
-      background: rgba(255, 255, 255, 0.12) !important; transform: scale(1.12);
+      background: #333333 !important; transform: scale(1.12);
     }
     .removeRowBtn:hover {
-      background: rgba(255, 90, 90, 0.15) !important; color: #ff5a5a !important; transform: scale(1.12);
+      background: #4a1f1f !important; color: #ff6b6b !important; transform: scale(1.12);
     }
     #addTable { transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease; }
     #addTable:hover {
