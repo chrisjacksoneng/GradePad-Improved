@@ -318,7 +318,10 @@
     .deleteButton:hover svg { stroke: #ff5a5a !important; }
 
     /* Collapse chevron rotates when the table is collapsed */
-    .fullScreen svg { transition: transform 0.2s ease; }
+    /* Collapse control: keep the chevron above the overlapping header input and
+       sized clearly (the old CSS sized a text arrow, not an icon). */
+    .fullScreen { position: relative !important; z-index: 5 !important; font-size: 0 !important; }
+    .fullScreen svg { width: 24px !important; height: 24px !important; stroke: #ffffff !important; transition: transform 0.2s ease; }
     table.collapsed .fullScreen svg { transform: rotate(180deg); }
 
     /* Hover affordances for the row and + Course buttons */
