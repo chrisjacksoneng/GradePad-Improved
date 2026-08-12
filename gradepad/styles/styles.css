@@ -255,6 +255,17 @@ h1 {
   width: 65px; /* Increase width */
 }
 
+/* The Lost column is the only one whose content changes width in use: the cell
+   holds an em dash until a row is scorable and then something like -12.34%.
+   With nothing holding the column open it grew mid-typing, widening the table
+   and pushing the row buttons sideways. Reserve the width of the widest value
+   it realistically shows. */
+.lostOutput {
+  display: inline-block;
+  min-width: 78px;
+  text-align: center;
+}
+
 /* Styling the actions column */
 .actionsColumn {
   text-align: center;
