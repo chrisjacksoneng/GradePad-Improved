@@ -1,111 +1,124 @@
+<div align="center">
+
+<img src="docs/logo.svg" alt="" width="88" height="88">
+
 # GradePad
 
-An intelligent academic management system that tracks semesters, courses, and assignments with real-time GPA calculation, AI-powered syllabus parsing, and seamless cloud synchronization.
+**Know where you stand in every course, before the final.**
 
+Paste a syllabus, get a grade table. GradePad works out your weighted mark as you<br>
+type, keeps a running average across courses, and saves as you go.
 
-## Overview
+[Quick start](#quick-start) · [How it works](#how-it-works) · [Architecture](#architecture) · [Development](#development)
 
-GradePad is more than a grade calculator—it's a complete academic organizer that helps students manage their entire semester. From parsing course syllabi with AI to calculating weighted GPAs across multiple courses, GradePad streamlines academic tracking with both offline and cloud-based storage.
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+![npm dependencies: 0](https://img.shields.io/badge/npm%20dependencies-0-brightgreen)
+![Auth and data: Firebase](https://img.shields.io/badge/auth%20%26%20data-Firebase-ffca28)
+![Deploys: Netlify](https://img.shields.io/badge/deploys-Netlify-00c7b7)
 
-## ✨ Features
+</div>
 
-### Core Functionality
-- **Multi-Semester Management**: Organize courses across multiple semesters with custom date ranges
-- **Course Tracking**: Track course codes, topics, and unit weights
-- **Assignment Management**: Add evaluations with names, due dates, grades, and weights
-- **Real-Time Calculations**: Automatic final grade and GPA calculations as you type
-- **Weighted GPA System**: Course units properly weight GPA calculations (e.g., 0.50 units vs 1.00 units)
+---
 
-### Advanced Features
-- **AI-Powered Syllabus Parsing**: Automatically extract course information and assignments from pasted syllabi
-- **Dual Storage System**: 
-  - **Guests**: Data persists in browser localStorage
-  - **Logged-in Users**: Cloud sync via Firebase Firestore across devices
-- **Offline-First Architecture**: Full functionality without internet connection
-- **Real-Time Synchronization**: Changes sync automatically across devices for logged-in users
-- **Drag & Drop**: Reorder evaluation rows with intuitive drag-and-drop
+Given the marks you have so far and the weights from your syllabus, GradePad answers
+the two questions that matter: what is my mark in this course right now, and what is
+that doing to my average. Guest work is stored in the browser and syncs to Firestore
+once you sign in.
 
-## 🛠️ Tech Stack
-
-### Frontend
-- **JavaScript
-- **HTML / CSS
-
-### Backend & Services
-- **Firebase Firestore**: Cloud database for user data synchronization
-- **Firebase Authentication**: User authentication and session management
-- **LocalStorage API**: Client-side data persistence for guest users
-
-### AI Integration
-- **LLM Integration**: AI-powered syllabus parsing and content extraction
-
-
-### Storage Strategy
-- **Guest Users**: All data stored in `localStorage` under `'gradepad_data'`
-- **Authenticated Users**: Data stored in Firestore at `users/{userId}/gradepad`
-- **Automatic Detection**: System automatically routes to appropriate storage based on auth state
-- **First Sign-In**: Grades saved on the device as a guest are moved into the account when it has none of its own
-
-### Tests
-The grade maths and the evaluation ordering are kept in `grading.js` and
-`ordering.js` with no DOM or storage in them, so they can be run directly:
+## Quick start
 
 ```bash
-npm test
+git clone https://github.com/chrisjacksonn/GradePad-Improved.git
+cd GradePad-Improved
+npm install
+cp gradepad/jsScripts/firebase-config.example.js gradepad/jsScripts/firebase-config.js
+npm run dev
 ```
 
-No test dependencies: this is Node's built-in runner. Anything that touches the
-DOM or Firestore still needs checking in a browser.
+The app opens at `http://localhost:3003`. The placeholder config is enough to use it
+as a guest; add a real [Firebase web config](https://firebase.google.com/docs/web/setup)
+for Google sign-in and cloud sync. Syllabus parsing needs `netlify dev` and a
+`GROQ_API_KEY`, and falls back to a local text parser without one.
 
-### Security Rules
-Firestore access is restricted to each user's own document. The rules live in
-`firestore.rules` so they are reviewable alongside the code, and are published
-with:
+## How it works
 
-```bash
-firebase deploy --only firestore:rules
+**Marks weight by what you have done so far.** A course graded on one 30% midterm
+reads as your midterm score, not as 30% of a grade you have not earned yet. Each row
+also shows what that assignment cost you against a perfect mark.
+
+**The average follows course units.** A 1.00-unit course moves it twice as far as a
+0.50-unit one.
+
+**Syllabi become tables.** An LLM pulls out the course code, assignments, dates and
+weights. Its output is written to inputs as values, never as markup, and a local
+parser takes over if the call fails.
+
+**Nothing is quietly lost.** Guest grades move into your account the first time you
+sign in, and a failed write says so instead of showing a green tick anyway.
+
+## Architecture
+
+Static pages, ES modules, no framework. Vite bundles the five HTML entry points.
+
+| Module | Responsibility |
+| --- | --- |
+| `jsScripts/db.js` | Storage. Firestore for signed-in users, `localStorage` for guests, behind one serialized read-modify-write queue |
+| `jsScripts/grading.js` | Weighted marks, lost points, unit-weighted average. Pure, no DOM |
+| `jsScripts/ordering.js` | Evaluation ordering and renumbering. Pure, no DOM |
+| `jsScripts/gradeCalc.js` | Reads the table into `grading.js` and writes the result back |
+| `jsScripts/tableOps.js` | Builds course tables and wires them to storage |
+| `jsScripts/modal.js` | Syllabus dialog and parsing, AI and local |
+| `jsScripts/dragDrop.js` | Row reordering, pointer events so it works on touch |
+| `jsScripts/siteHeader.js` | Sign-in header shared by the content pages |
+| `jsScripts/utils.js` | Collapse, undo toasts, save status |
+| `netlify/functions/groq.js` | Syllabus parsing proxy. Same-origin only, model and size capped |
+
+Writes run through a single promise chain and rewrite the whole document, so
+concurrent edits in a tab cannot overwrite each other, and evaluations carry stable
+ids, so reordering or deleting a row never rewrites a different one.
+
+## Data model
+
+One document per user, at `users/{uid}` in Firestore or under `gradepad_data` in
+`localStorage`.
+
+```json
+{
+  "semesters": [{
+    "id": "m8x2k1", "name": "Fall 2026",
+    "courses": [{
+      "id": "c4n9p2", "code": "SYDE 101", "topic": "Statics", "units": 0.5,
+      "evaluations": [
+        { "id": "e7q3", "name": "Midterm", "due": "Mar 15",
+          "grade": "82", "weight": "30", "index": 0 }
+      ]
+    }]
+  }]
+}
 ```
 
-Editing rules in the Firebase console instead will leave this file stale, so
-change them here and deploy.
+`index` is display order only. Identity is always `id`.
 
-### Key Components
-- **Real-Time Calculations**: Event-driven grade and GPA updates
-- **Form Validation**: Number inputs for marks and weights, with unit-tested grade maths
-- **State Management**: Efficient data flow and synchronization
-- **Error Handling**: Comprehensive error handling for edge cases
+## Development
 
-## 📖 Usage
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Vite dev server on port 3003 |
+| `npm run build` | Production build into `dist/` |
+| `npm run preview` | Serve the built output |
+| `npm test` | Unit tests, Node's built-in runner, no test dependencies |
 
-### Getting Started
-1. **As a Guest**: Start using GradePad immediately—all data saves locally
-2. **With Account**: Sign up to sync data across devices
+Tests cover `grading.js` and `ordering.js`. Anything touching the page still needs
+checking in a browser.
 
-### Adding Courses
-1. Create a new semester or select an existing one
-2. Add courses with code, topic, and unit weight
-3. Set course units (0.25, 0.50, 0.75, 1.00, 1.50, 2.00) for proper GPA weighting
+Firestore access is restricted to each user's own document. Those rules live in
+[`firestore.rules`](firestore.rules) so they are reviewable next to the code, and ship
+with `firebase deploy --only firestore:rules`. Editing them in the console instead
+leaves that file stale.
 
-### Managing Assignments
-1. Add evaluation rows with name, due date, grade, and weight
-2. Grades and weights support decimal values
-3. Final grade calculates automatically as you input data
-4. Use drag-and-drop to reorder assignments
+Netlify builds from `master`, writing `firebase-config.js` from `FIREBASE_API_KEY`.
+The syllabus function reads `GROQ_API_KEY`.
 
-### Syllabus Parsing
-1. Click the syllabus button on any course
-2. Paste your course syllabus
-3. AI automatically extracts course code, title, and assignments
-4. Review and adjust parsed data as needed
+## License
 
-### GPA Calculation
-- **Course-level GPA**: Calculated from weighted assignments
-- **Term GPA**: Weighted average across all courses based on unit values
-- Updates in real-time as you modify grades or units
-
-## 💡 Technical Highlights
-
-### Advanced Input Handling
-- Decimal support for grades and weights
-- Cursor position preservation during input validation
-- Real-time sanitization without disrupting user experience
+[MIT](LICENSE) © Chris Jackson
