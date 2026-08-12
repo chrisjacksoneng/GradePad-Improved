@@ -284,7 +284,11 @@ export function attachEventListeners(wrapper) {
           r.querySelector('.dueInput') || r.querySelector('.gradeInput') || r.querySelector('.weightInput')
         );
         const index = evalRows.indexOf(row);
-        const savedId = await saveEvaluation({ semesterId, courseId, evalId, name, due, grade, weight, index });
+        // Send the whole on-screen order alongside the row. Saving only this
+        // row's index would leave a row inserted between two existing rows
+        // sharing an index with its neighbour, which reshuffles it on reload.
+        const orderedIds = evalRows.map((r) => r.dataset.evalId).filter(Boolean);
+        const savedId = await saveEvaluation({ semesterId, courseId, evalId, name, due, grade, weight, index, orderedIds });
         if (savedId) row.dataset.evalId = savedId;
       } finally {
         markSaved();

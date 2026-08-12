@@ -214,6 +214,16 @@ function saveAllDataLocal(data) {
   localStorage.setItem('gradepad_data', JSON.stringify(data));
 }
 
+// Renumber a course's evaluations so each one listed in orderedIds takes its
+// position in that list. Evaluations not named there keep their index.
+function applyOrder(course, orderedIds) {
+  if (!Array.isArray(orderedIds) || orderedIds.length === 0) return;
+  const position = new Map(orderedIds.map((id, i) => [id, i]));
+  course.evaluations.forEach((e) => {
+    if (position.has(e.id)) e.index = position.get(e.id);
+  });
+}
+
 // Helper function to generate unique IDs
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
@@ -317,7 +327,13 @@ export async function saveCourse({ semesterId, code, topic, units, courseId = nu
 // as an identity key, so reordering or deleting rows can no longer clobber a
 // different evaluation. Returns the evaluation's id so callers can remember it
 // on the row for subsequent edits.
-export async function saveEvaluation({ semesterId, courseId, evalId = null, name, due, grade, weight, index }) {
+//
+// `orderedIds` (optional) is the full on-screen order of the course's rows.
+// When given, every listed evaluation is renumbered to its position in that
+// list, in the same write. Without it, saving a row inserted between two
+// existing rows would leave two evaluations sharing one index, and the row
+// would land somewhere else on reload.
+export async function saveEvaluation({ semesterId, courseId, evalId = null, name, due, grade, weight, index, orderedIds = null }) {
   try {
     return await mutate((data) => {
       const semester = data.semesters.find(s => s.id === semesterId);
@@ -328,6 +344,7 @@ export async function saveEvaluation({ semesterId, courseId, evalId = null, name
       if (!Array.isArray(course.evaluations)) course.evaluations = [];
 
       const existing = evalId ? course.evaluations.find(e => e.id === evalId) : null;
+      let savedId;
 
       if (existing) {
         existing.name = name ?? '';
@@ -336,20 +353,23 @@ export async function saveEvaluation({ semesterId, courseId, evalId = null, name
         existing.weight = weight ?? '';
         if (index != null) existing.index = index;
         existing.updatedAt = new Date().toISOString();
-        return existing.id;
+        savedId = existing.id;
+      } else {
+        const evaluation = {
+          id: evalId || generateId(),
+          name: name ?? '',
+          due: due ?? '',
+          grade: grade ?? '',
+          weight: weight ?? '',
+          index: index != null ? index : course.evaluations.length,
+          createdAt: new Date().toISOString()
+        };
+        course.evaluations.push(evaluation);
+        savedId = evaluation.id;
       }
 
-      const evaluation = {
-        id: evalId || generateId(),
-        name: name ?? '',
-        due: due ?? '',
-        grade: grade ?? '',
-        weight: weight ?? '',
-        index: index != null ? index : course.evaluations.length,
-        createdAt: new Date().toISOString()
-      };
-      course.evaluations.push(evaluation);
-      return evaluation.id;
+      applyOrder(course, orderedIds);
+      return savedId;
     });
   } catch (error) {
     console.error('❌ Error saving evaluation:', error);
@@ -384,10 +404,7 @@ export async function reorderEvaluations(semesterId, courseId, orderedIds) {
       if (!semester) return;
       const course = (semester.courses || []).find(c => c.id === courseId);
       if (!course || !Array.isArray(course.evaluations)) return;
-      const position = new Map(orderedIds.map((id, i) => [id, i]));
-      course.evaluations.forEach(e => {
-        if (position.has(e.id)) e.index = position.get(e.id);
-      });
+      applyOrder(course, orderedIds);
     });
   } catch (error) {
     console.error('❌ Failed to reorder evaluations:', error);
