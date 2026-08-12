@@ -73,55 +73,16 @@ export function attachEventListeners(wrapper) {
   // after rows are added (or on re-render) and it wires only the new elements
   // instead of stacking duplicate listeners that fire calculations and saves
   // multiple times.
+  // Mark and weight are number inputs, so the browser already rejects anything
+  // that is not a number: a stray letter never reaches the value. The
+  // hand-rolled sanitiser that used to live here read input.selectionStart,
+  // which a number input does not support (Chrome throws on it), so it died on
+  // its first line on every keystroke and never sanitised anything.
   table.querySelectorAll('.gradeInput').forEach((input) => {
     if (input.dataset.calcWired === "true") return;
     input.dataset.calcWired = "true";
     input.setAttribute('step','0.01');
     input.setAttribute('min','0');
-
-    // Store previous value to track changes
-    let previousValue = input.value;
-    
-    input.addEventListener('input', (e) => {
-      const cursorPos = input.selectionStart;
-      const currentValue = input.value;
-      
-      // Remove invalid characters
-      let v = currentValue.replace(/[^0-9.]/g, '');
-      
-      // Remove extra decimal points (keep only the first one)
-      const firstDot = v.indexOf('.');
-      if (firstDot !== -1) {
-        v = v.slice(0, firstDot + 1) + v.slice(firstDot + 1).replace(/\./g, '');
-      }
-      
-      // Only update if sanitized value is different from what user typed
-      if (v !== currentValue) {
-        // Calculate new cursor position based on how many valid chars were before cursor
-        let validCharsBefore = 0;
-        let hasSeenDot = false;
-        for (let i = 0; i < cursorPos && i < currentValue.length; i++) {
-          const char = currentValue[i];
-          if (char >= '0' && char <= '9') {
-            validCharsBefore++;
-          } else if (char === '.' && !hasSeenDot) {
-            validCharsBefore++;
-            hasSeenDot = true;
-          }
-        }
-        
-        input.value = v;
-        previousValue = v;
-        
-        // Set cursor position, ensuring it doesn't exceed the new value length
-        const newCursorPos = Math.min(validCharsBefore, v.length);
-        setTimeout(() => {
-          input.setSelectionRange(newCursorPos, newCursorPos);
-        }, 0);
-      } else {
-        previousValue = v;
-      }
-    });
     input.addEventListener('input', calculateFinalGrade);
   });
   table.querySelectorAll('.weightInput').forEach((input) => {
@@ -130,50 +91,6 @@ export function attachEventListeners(wrapper) {
     input.setAttribute('step','0.01');
     input.setAttribute('min','0');
     input.setAttribute('max','100');
-
-    // Store previous value to track changes
-    let previousValue = input.value;
-    
-    input.addEventListener('input', (e) => {
-      const cursorPos = input.selectionStart;
-      const currentValue = input.value;
-      
-      // Remove invalid characters
-      let v = currentValue.replace(/[^0-9.]/g, '');
-      
-      // Remove extra decimal points (keep only the first one)
-      const firstDot = v.indexOf('.');
-      if (firstDot !== -1) {
-        v = v.slice(0, firstDot + 1) + v.slice(firstDot + 1).replace(/\./g, '');
-      }
-      
-      // Only update if sanitized value is different from what user typed
-      if (v !== currentValue) {
-        // Calculate new cursor position based on how many valid chars were before cursor
-        let validCharsBefore = 0;
-        let hasSeenDot = false;
-        for (let i = 0; i < cursorPos && i < currentValue.length; i++) {
-          const char = currentValue[i];
-          if (char >= '0' && char <= '9') {
-            validCharsBefore++;
-          } else if (char === '.' && !hasSeenDot) {
-            validCharsBefore++;
-            hasSeenDot = true;
-          }
-        }
-        
-        input.value = v;
-        previousValue = v;
-        
-        // Set cursor position, ensuring it doesn't exceed the new value length
-        const newCursorPos = Math.min(validCharsBefore, v.length);
-        setTimeout(() => {
-          input.setSelectionRange(newCursorPos, newCursorPos);
-        }, 0);
-      } else {
-        previousValue = v;
-      }
-    });
     input.addEventListener('input', calculateFinalGrade);
   });
 
