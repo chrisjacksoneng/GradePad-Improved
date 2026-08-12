@@ -6,6 +6,11 @@ const ALLOWED_MODELS = new Set([
 ]);
 const MAX_TOKENS = 2048;
 const MAX_MESSAGES = 12;
+// Enough for a long syllabus, far short of an unbounded prompt on the owner's
+// key. Counted across the whole conversation, not per message.
+const MAX_TOTAL_CHARS = 40000;
+const MAX_BODY_BYTES = 200000;
+const ALLOWED_ROLES = new Set(['system', 'user', 'assistant']);
 
 export async function handler(event) {
   const headers = event.headers || {};
@@ -34,9 +39,11 @@ export async function handler(event) {
     return { statusCode: 405, headers: cors, body: 'Method Not Allowed' };
   }
 
-  // Block cross-origin browser callers outright (an unknown Origin that does
-  // not match this host).
-  if (origin && !sameOrigin) {
+  // Require an Origin that matches this host. Browsers always send Origin on a
+  // POST, so the app itself is unaffected, while a request with no Origin at
+  // all (curl, a script, another server) no longer sails through and spends the
+  // owner's Groq credit.
+  if (!sameOrigin) {
     return { statusCode: 403, headers: cors, body: 'Forbidden origin' };
   }
 
@@ -47,15 +54,33 @@ export async function handler(event) {
 
   // Validate and clamp the request so the proxy cannot be used as a free,
   // unbounded LLM backend on the owner's key.
+  const rawBody = event.body || '{}';
+  if (rawBody.length > MAX_BODY_BYTES) {
+    return { statusCode: 413, headers: cors, body: 'Request too large' };
+  }
+
   let payload;
   try {
-    payload = JSON.parse(event.body || '{}');
+    payload = JSON.parse(rawBody);
   } catch {
     return { statusCode: 400, headers: cors, body: 'Invalid JSON body' };
   }
 
   if (!Array.isArray(payload.messages) || payload.messages.length === 0 || payload.messages.length > MAX_MESSAGES) {
     return { statusCode: 400, headers: cors, body: 'Invalid messages' };
+  }
+
+  // The message count alone bounded nothing: twelve megabyte-sized messages
+  // were as welcome as twelve short ones.
+  let totalChars = 0;
+  for (const message of payload.messages) {
+    if (!message || typeof message.content !== 'string' || !ALLOWED_ROLES.has(message.role)) {
+      return { statusCode: 400, headers: cors, body: 'Invalid messages' };
+    }
+    totalChars += message.content.length;
+  }
+  if (totalChars > MAX_TOTAL_CHARS) {
+    return { statusCode: 413, headers: cors, body: 'Syllabus text is too long' };
   }
 
   const model = ALLOWED_MODELS.has(payload.model) ? payload.model : 'llama-3.1-8b-instant';
