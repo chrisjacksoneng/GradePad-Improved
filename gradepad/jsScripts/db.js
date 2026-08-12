@@ -478,16 +478,43 @@ export async function loadCourses(semesterId) {
 }
 
 // --- Delete Course ---
+// Returns the removed course and the position it held, so an undo can put it
+// back exactly where it was.
 export async function deleteCourse(semesterId, courseId) {
+  try {
+    const removed = await mutate((data) => {
+      const semester = data.semesters.find(s => s.id === semesterId);
+      if (!semester || !Array.isArray(semester.courses)) return null;
+      const index = semester.courses.findIndex(c => c.id === courseId);
+      if (index === -1) return null;
+      const [course] = semester.courses.splice(index, 1);
+      return { course, index };
+    });
+    if (removed) console.log('✅ Course deleted:', courseId);
+    return removed;
+  } catch (err) {
+    console.error('❌ Failed to delete course:', err);
+    return null;
+  }
+}
+
+// --- Restore Course ---
+// Puts back a course removed by deleteCourse, keeping its id, evaluations and
+// original position.
+export async function restoreCourse(semesterId, removed) {
+  if (!removed || !removed.course) return;
   try {
     await mutate((data) => {
       const semester = data.semesters.find(s => s.id === semesterId);
       if (!semester) return;
-      semester.courses = (semester.courses || []).filter(c => c.id !== courseId);
+      if (!Array.isArray(semester.courses)) semester.courses = [];
+      if (semester.courses.some(c => c.id === removed.course.id)) return;
+      const at = Math.min(Math.max(removed.index ?? semester.courses.length, 0), semester.courses.length);
+      semester.courses.splice(at, 0, removed.course);
     });
-    console.log('✅ Course deleted:', courseId);
+    console.log('↩️ Course restored:', removed.course.id);
   } catch (err) {
-    console.error('❌ Failed to delete course:', err);
+    console.error('❌ Failed to restore course:', err);
   }
 }
 

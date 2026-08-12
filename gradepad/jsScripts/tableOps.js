@@ -2,7 +2,7 @@ import { calculateFinalGrade, calculateCurrentGPA } from './gradeCalc.js';
 import { setupMoveRowButton } from './dragDrop.js';
 import { toggleCollapse, showUndoToast, markSaving, markSaved } from './utils.js';
 import { attachSyllabusButtonListeners } from './modal.js';
-import { saveCourse, saveEvaluation, deleteCourse, deleteEvaluation } from './db.js';
+import { saveCourse, saveEvaluation, deleteCourse, restoreCourse, deleteEvaluation } from './db.js';
 
 // Client-side stable id for a new evaluation row, stamped synchronously so
 // concurrent saves for the same row upsert one record instead of duplicating.
@@ -416,20 +416,25 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
       const parent = newTable.parentNode;
       const anchor = newTable.nextSibling;
 
-      // Remove immediately and offer an Undo instead of a blocking confirm().
-      // The course is only deleted from storage once the grace period passes.
+      // Delete from storage straight away and let Undo put it back. Deferring
+      // the delete until the toast timed out meant a reload during those few
+      // seconds left the course gone from the screen but still in storage, so
+      // it reappeared on the next load.
+      const removal = (semesterId && courseId)
+        ? deleteCourse(semesterId, courseId)
+        : Promise.resolve(null);
+
       newTable.remove();
       calculateCurrentGPA();
-      showUndoToast(
-        "Course deleted",
-        () => {
-          if (parent) parent.insertBefore(newTable, anchor);
-          calculateCurrentGPA();
-        },
-        () => {
-          if (semesterId && courseId) deleteCourse(semesterId, courseId);
+      showUndoToast("Course deleted", async () => {
+        if (parent) {
+          if (anchor && anchor.parentNode === parent) parent.insertBefore(newTable, anchor);
+          else parent.appendChild(newTable);
         }
-      );
+        calculateCurrentGPA();
+        const removed = await removal;
+        if (removed && semesterId) await restoreCourse(semesterId, removed);
+      });
     });
   }
 
