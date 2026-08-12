@@ -1,14 +1,8 @@
 import { defineConfig } from 'vite'
-import legacy from '@vitejs/plugin-legacy'
 
 export default defineConfig({
   root: './',
-  plugins: [
-    // Temporarily disabled legacy plugin due to build errors
-    // legacy({
-    //   targets: ['defaults', 'not IE 11']
-    // })
-  ],
+  plugins: [],
   build: {
     outDir: 'dist',
     assetsDir: 'assets',

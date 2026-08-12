@@ -462,7 +462,7 @@
     </div>
     <div class="header-center">
       <span id="navGpa" class="gpa-display">GPA: 0.00</span>
-            </div>
+    </div>
     <div class="header-right">
       <button id="accountButton" class="account-button" aria-haspopup="true" aria-expanded="false">Sign in</button>
       <div id="accountMenu" class="account-menu" hidden>
@@ -471,9 +471,6 @@
       </div>
     </div>
   </header>
-    </div>
-  </div>
-
 
   <div class="table-container">
     <div class="table-row">
@@ -489,7 +486,7 @@
                 <input type="text" placeholder="Insert Course Topic" class="courseTopic">
                 <button class="syllabusButton"><i data-lucide="file-text" style="width: 20px; height: 20px;"></i></button>
                 <div class="syllabusModal modal">
-                  <div class="modal-content" class="syllabusmodalcontent">
+                  <div class="modal-content">
                     <span class="close">&times;</span>
                     <textarea class="syllabusTextbox" placeholder="Paste the course syllabus here..."></textarea>
                     <div class="modal-footer">
@@ -878,41 +875,6 @@ onAuthChange(async (user) => {
     
     <script>
       lucide.createIcons();
-      
-      // Update GPA in navigation header
-      function updateNavGpa() {
-        const currentGpaElement = document.getElementById('current-gpa');
-        const navGpaElement = document.getElementById('navGpa');
-        
-        if (currentGpaElement && navGpaElement) {
-          // Extract GPA value from existing element
-          const gpaText = currentGpaElement.textContent;
-          const gpaMatch = gpaText.match(/(\d+\.\d+)/);
-          
-          if (gpaMatch) {
-            navGpaElement.textContent = `GPA: ${gpaMatch[1]}`;
-          } else {
-            navGpaElement.textContent = 'GPA: 0.00';
-          }
-        }
-      }
-      
-      updateNavGpa();
-      
-      // Set up observer to watch for GPA changes
-      const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-          if (mutation.target.id === 'current-gpa') {
-            updateNavGpa();
-          }
-        });
-      });
-      
-      // Start observing the GPA element for changes
-      const gpaElement = document.getElementById('current-gpa');
-      if (gpaElement) {
-        observer.observe(gpaElement, { childList: true, characterData: true, subtree: true });
-      }
     </script>
     
     <script>

@@ -256,20 +256,13 @@ export function attachAllEventListeners() {
   });
 }
 
-export function createNewTable(evaluations = [], useExistingTable = false) {
-  let newTable;
+export function createNewTable(evaluations = []) {
+  // ✅ Create a new table wrapper
+  const lastTable = document.querySelector(".table-wrapper:last-of-type");
+  const newTable = document.createElement("div");
+  newTable.classList.add("table-wrapper");
 
-  if (useExistingTable) {
-    // ✅ Reuse the existing table from HTML
-    newTable = document.querySelector(".table-wrapper");
-  } else {
-    // ✅ Create a new table wrapper
-    const lastTable = document.querySelector(".table-wrapper:last-of-type");
-    newTable = document.createElement("div");
-    newTable.classList.add("table-wrapper");
-    
-
-    newTable.innerHTML = `
+  newTable.innerHTML = `
       <table>
         <tr>
           <td colspan="6" class="courseHeader">
@@ -321,35 +314,27 @@ export function createNewTable(evaluations = [], useExistingTable = false) {
       </table>
     `;
 
-    if (lastTable) {
-      lastTable.insertAdjacentElement("afterend", newTable);
-    } else {
-      const container = document.querySelector(".table-container");
-      const firstRow = container?.querySelector(".table-row");
-      if (container && firstRow) {
-        const addBtn = firstRow.querySelector('#addTable');
-        const existingTopTable = firstRow.querySelector('.table-wrapper');
-        if (!existingTopTable && addBtn) {
-          // Put the very first real table to the left of the + Course button
-          firstRow.insertBefore(newTable, addBtn);
-        } else {
-          // Additional tables go below the first row
-          container.insertBefore(newTable, firstRow.nextSibling);
-        }
-      } else if (container) {
-        container.appendChild(newTable);
+  if (lastTable) {
+    lastTable.insertAdjacentElement("afterend", newTable);
+  } else {
+    const container = document.querySelector(".table-container");
+    const firstRow = container?.querySelector(".table-row");
+    if (container && firstRow) {
+      const addBtn = firstRow.querySelector('#addTable');
+      if (addBtn) {
+        // Put the very first table to the left of the + Course button
+        firstRow.insertBefore(newTable, addBtn);
+      } else {
+        // Additional tables go below the first row
+        container.insertBefore(newTable, firstRow.nextSibling);
       }
+    } else if (container) {
+      container.appendChild(newTable);
     }
   }
 
   const table = newTable.querySelector("table");
   const finalRow = table.querySelector("#finalGradeRow");
-
-  // 🔄 Remove any existing rows before #finalGradeRow
-  const staticRows = table.querySelectorAll("tr:not(.columnTitles):not(:first-child):not(#finalGradeRow)");
-  staticRows.forEach((row) => {
-    if (row !== finalRow) row.remove();
-  });
 
   if (evaluations.length > 0) {
     evaluations.forEach((evalData, index) => {
