@@ -46,6 +46,17 @@ GradePad is more than a grade calculator—it's a complete academic organizer th
 - **Automatic Detection**: System automatically routes to appropriate storage based on auth state
 - **First Sign-In**: Grades saved on the device as a guest are moved into the account when it has none of its own
 
+### Tests
+The grade maths and the evaluation ordering are kept in `grading.js` and
+`ordering.js` with no DOM or storage in them, so they can be run directly:
+
+```bash
+npm test
+```
+
+No test dependencies: this is Node's built-in runner. Anything that touches the
+DOM or Firestore still needs checking in a browser.
+
 ### Security Rules
 Firestore access is restricted to each user's own document. The rules live in
 `firestore.rules` so they are reviewable alongside the code, and are published
@@ -60,7 +71,7 @@ change them here and deploy.
 
 ### Key Components
 - **Real-Time Calculations**: Event-driven grade and GPA updates
-- **Form Validation**: Input sanitization with cursor position preservation
+- **Form Validation**: Number inputs for marks and weights, with unit-tested grade maths
 - **State Management**: Efficient data flow and synchronization
 - **Error Handling**: Comprehensive error handling for edge cases
 

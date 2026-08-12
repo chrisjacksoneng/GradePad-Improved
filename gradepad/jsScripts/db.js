@@ -2,6 +2,7 @@
 import { db, auth } from './firebase.js';
 import { doc, getDoc, setDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js';
+import { applyOrder, sortByIndex } from './ordering.js';
 
 // ---------------------------------------------------------------------------
 // Auth readiness
@@ -258,16 +259,6 @@ function saveAllDataLocal(data) {
   localStorage.setItem(GUEST_KEY, JSON.stringify(data));
 }
 
-// Renumber a course's evaluations so each one listed in orderedIds takes its
-// position in that list. Evaluations not named there keep their index.
-function applyOrder(course, orderedIds) {
-  if (!Array.isArray(orderedIds) || orderedIds.length === 0) return;
-  const position = new Map(orderedIds.map((id, i) => [id, i]));
-  course.evaluations.forEach((e) => {
-    if (position.has(e.id)) e.index = position.get(e.id);
-  });
-}
-
 // Helper function to generate unique IDs
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
@@ -412,7 +403,7 @@ export async function saveEvaluation({ semesterId, courseId, evalId = null, name
         savedId = evaluation.id;
       }
 
-      applyOrder(course, orderedIds);
+      applyOrder(course.evaluations, orderedIds);
       return savedId;
     });
   } catch (error) {
@@ -448,7 +439,7 @@ export async function reorderEvaluations(semesterId, courseId, orderedIds) {
       if (!semester) return;
       const course = (semester.courses || []).find(c => c.id === courseId);
       if (!course || !Array.isArray(course.evaluations)) return;
-      applyOrder(course, orderedIds);
+      applyOrder(course.evaluations, orderedIds);
     });
   } catch (error) {
     console.error('❌ Failed to reorder evaluations:', error);
@@ -467,9 +458,7 @@ export async function loadCourses(semesterId) {
       code: course.code,
       topic: course.topic,
       units: course.units,
-      evaluations: (course.evaluations || [])
-        .slice()
-        .sort((a, b) => (a.index ?? 0) - (b.index ?? 0))
+      evaluations: sortByIndex(course.evaluations || [])
     }));
   } catch (error) {
     console.error('❌ Failed to load courses:', error);

@@ -1,83 +1,75 @@
+import { parseNumber, lostPoints, courseMark, weightedAverage } from './grading.js';
+
 export function calculateFinalGrade(event) {
-    const table = event?.target?.closest?.("table") || event;
-    if (!table) return;
-  
-    const rows = table.querySelectorAll("tr:not(:first-child, #finalGradeRow)");
-    let totalWeightedScore = 0;
-    let totalWeight = 0;
-    let validInput = false;
-  
-    rows.forEach((row) => {
-      const gradeInput = row.querySelector(".gradeInput");
-      const weightInput = row.querySelector(".weightInput");
-      const lostOutput = row.querySelector(".lostOutput");
-  
-      if (!gradeInput || !weightInput || !lostOutput) return;
-  
-      let grade = parseFloat(gradeInput.value);
-      let weight = parseFloat(weightInput.value);
-  
-      if (!isNaN(grade) && !isNaN(weight) && weight > 0) {
-        totalWeightedScore += grade * weight;
-        totalWeight += weight;
-        validInput = true;
-  
-        let lostValue = ((grade - 100) / 100) * weight;
-        lostOutput.innerText = `${lostValue > 0 ? "+" : ""}${lostValue.toFixed(2)}%`;
-        lostOutput.style.color =
-          lostValue > 0 ? "#6aa84f" : lostValue < 0 ? "#cc0000" : "black";
-      } else {
-        lostOutput.innerText = "—";
-        lostOutput.style.color = "black";
-      }
-    });
-  
+  const table = event?.target?.closest?.("table") || event;
+  if (!table) return;
+
+  const rows = table.querySelectorAll("tr:not(:first-child, #finalGradeRow)");
+  const entries = [];
+
+  rows.forEach((row) => {
+    const gradeInput = row.querySelector(".gradeInput");
+    const weightInput = row.querySelector(".weightInput");
+    const lostOutput = row.querySelector(".lostOutput");
+
+    if (!gradeInput || !weightInput || !lostOutput) return;
+
+    const grade = parseNumber(gradeInput.value);
+    const weight = parseNumber(weightInput.value);
+    const lost = lostPoints(grade, weight);
+
+    if (lost === null) {
+      lostOutput.innerText = "—";
+      lostOutput.style.color = "black";
+      return;
+    }
+
+    entries.push({ grade, weight });
+    lostOutput.innerText = `${lost > 0 ? "+" : ""}${lost.toFixed(2)}%`;
+    lostOutput.style.color =
+      lost > 0 ? "#6aa84f" : lost < 0 ? "#cc0000" : "black";
+  });
+
+  const finalGradeCell = table.querySelector(".finalGrade");
+  if (!finalGradeCell) return;
+
+  const mark = courseMark(entries);
+
+  if (mark === null) {
+    finalGradeCell.innerText = "Pending";
+    finalGradeCell.style.color = "black";
+  } else {
+    finalGradeCell.innerText = `${mark.toFixed(2)}%`;
+    finalGradeCell.style.color =
+      mark >= 80 ? "#6aa84f" : mark >= 50 ? "#E65100" : "#cc0000";
+  }
+
+  calculateCurrentGPA();
+}
+
+export function calculateCurrentGPA() {
+  const tables = document.querySelectorAll(".table-wrapper table");
+  const courses = [];
+
+  tables.forEach((table) => {
     const finalGradeCell = table.querySelector(".finalGrade");
-    if (!finalGradeCell) return;
-  
-    if (!validInput) {
-      finalGradeCell.innerText = "Pending";
-      finalGradeCell.style.color = "black";
-    } else {
-      let finalGrade = totalWeight > 0 ? totalWeightedScore / totalWeight : 0;
-      finalGradeCell.innerText = `${finalGrade.toFixed(2)}%`;
-      finalGradeCell.style.color =
-        finalGrade >= 80 ? "#6aa84f" : finalGrade >= 50 ? "#E65100" : "#cc0000";
-    }
-  
-    calculateCurrentGPA();
-  }
-  
-  export function calculateCurrentGPA() {
-    const tables = document.querySelectorAll(".table-wrapper table");
-    let weightedGradeSum = 0;
-    let totalUnits = 0;
-  
-    tables.forEach((table) => {
-      const finalGradeCell = table.querySelector(".finalGrade");
-      const unitsDropdown = table.querySelector(".courseUnitsDropdown");
-  
-      if (
-        finalGradeCell &&
-        finalGradeCell.textContent !== "Pending" &&
-        unitsDropdown
-      ) {
-        const grade = parseFloat(finalGradeCell.textContent);
-        const units = parseFloat(unitsDropdown.value);
-  
-        if (!isNaN(grade) && !isNaN(units)) {
-          weightedGradeSum += grade * units;
-          totalUnits += units;
-        }
-      }
+    const unitsDropdown = table.querySelector(".courseUnitsDropdown");
+
+    if (!finalGradeCell || !unitsDropdown) return;
+    // A course with nothing graded yet is left out entirely rather than
+    // counted as a zero.
+    if (finalGradeCell.textContent === "Pending") return;
+
+    courses.push({
+      mark: parseNumber(finalGradeCell.textContent),
+      units: parseNumber(unitsDropdown.value),
     });
-  
-    const average =
-      totalUnits > 0 ? (weightedGradeSum / totalUnits).toFixed(2) : "0.00";
-    
-    const gpaElement = document.getElementById("navGpa");
-    if (gpaElement) {
-      gpaElement.textContent = `GPA: ${average}`;
-    }
+  });
+
+  const average = weightedAverage(courses);
+
+  const gpaElement = document.getElementById("navGpa");
+  if (gpaElement) {
+    gpaElement.textContent = `GPA: ${(average ?? 0).toFixed(2)}`;
   }
-  
+}
