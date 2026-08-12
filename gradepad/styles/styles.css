@@ -138,9 +138,8 @@ body {
   padding-bottom: 20px;
 }
 
-table.collapsed .titleBox {
-  min-height: 119px;
-}
+/* The collapsed header keeps the height it had when expanded. toggleCollapse
+   measures it and pins it, rather than guessing at a fixed number here. */
 
 /* Background color for entire top section (course code, topic, and table headers) */
 td[colspan="5"],
@@ -632,11 +631,10 @@ td[colspan] {
   margin: 0; /* Remove any margins */
 }
 
-/* Ensure no extra spacing when collapsed */
-table.collapsed th,
-table.collapsed td[colspan] {
-  padding: 2.5px; /* Match the padding of the expanded table */
-}
+/* Collapsing hides columns; it must not change row heights. This used to drop
+   th and td[colspan] padding from 10px to 2.5px, taking 15px off the column
+   titles and 15px off the course header, which is why a collapsed course sat
+   shorter than the ones next to it. */
 
 /* Override browser autofill styles */
 input:-webkit-autofill,

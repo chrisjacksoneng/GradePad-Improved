@@ -10,8 +10,18 @@ export function toggleCollapse(event) {
     const finalMarkValue = finalGradeRow.children[1];
     const unitsCell = finalGradeRow.children[2];
 
+    // Measure the course header before anything is hidden. Collapsing takes the
+    // delete and syllabus buttons out of the flow, which shortened the whole
+    // table and left it no longer lining up with the courses beside it.
+    const titleBox = table.querySelector(".titleBox");
+    const expandedTitleHeight = titleBox ? titleBox.offsetHeight : 0;
+
     // The chevron icon rotates via CSS on table.collapsed, so no text swap here.
     const isCollapsed = table.classList.toggle("collapsed");
+
+    if (titleBox) {
+      titleBox.style.minHeight = isCollapsed ? `${expandedTitleHeight}px` : "";
+    }
 
     const deleteButton = table.querySelector(".deleteButton");
     if (deleteButton) deleteButton.style.display = isCollapsed ? "none" : "inline-block";
