@@ -246,7 +246,12 @@ export function attachEventListeners(wrapper) {
         markSaved();
       }
     };
-    [codeInput, topicInput, unitsDropdown].forEach((el) => el && el.addEventListener("blur", saveCourseHeader));
+    // Text fields save when focus leaves them. The units dropdown saves on
+    // change instead: picking an option leaves focus on the select, so a blur
+    // may never come and the new unit value (and the GPA it feeds) was lost on
+    // reload.
+    [codeInput, topicInput].forEach((el) => el && el.addEventListener("blur", saveCourseHeader));
+    if (unitsDropdown) unitsDropdown.addEventListener("change", saveCourseHeader);
 
     // Persist one evaluation row, creating the course on first edit.
     const saveEvalRow = async (row) => {
