@@ -107,10 +107,16 @@ button:hover {
 body {
   font-family: "Roboto Mono", monospace;
   overflow-x: auto; /* Enables horizontal scrolling */
-  white-space: nowrap; /* Prevents tables from wrapping */
   margin-top: 100px;
   background-color: var(--bg-color);
   background-image: none;
+}
+
+/* Keep table content on one line, which is all the old body-wide nowrap was
+   ever meant to do. On body it also reached the modal, where it forced the
+   syllabus note onto a single line that ran past the edge of the dialog. */
+.table-wrapper table {
+  white-space: nowrap;
 }
 
 /* Course container styling */
@@ -461,6 +467,9 @@ tr:nth-child(even) td {
 
 /* Modal Content/Box */
 .modal-content {
+  /* The modal markup sits inside the course table, so it has to opt back out
+     of the table's nowrap for its prose to wrap. */
+  white-space: normal;
   background-color: var(--card-bg);
   padding: 20px;
   border: 2px solid var(--border-color);
