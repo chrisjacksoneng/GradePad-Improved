@@ -32,6 +32,9 @@ onAuthStateChanged(
     // A different identity means the cached document belongs to the wrong store;
     // drop it so the next operation reloads from the correct place.
     if (identityChanged) invalidateCache();
+    // Queued synchronously here so it lands on the operation queue ahead of the
+    // page's own first read, which therefore sees the imported data.
+    if (user) importGuestData(user);
   },
   (error) => {
     // If Firebase auth errors out on init, degrade to guest instead of leaving
@@ -188,11 +191,52 @@ async function saveAllDataFirestore(userId, data) {
   }
 }
 
+const GUEST_KEY = 'gradepad_data';
+const GUEST_IMPORTED_KEY = 'gradepad_data_imported';
+
+function hasSemesters(data) {
+  return !!data && Array.isArray(data.semesters) && data.semesters.length > 0;
+}
+
+// ---------------------------------------------------------------------------
+// Guest -> account import
+// Guest edits go to localStorage and signed-in edits go to Firestore, with
+// nothing connecting the two: a student who filled in a whole semester before
+// signing in landed in an empty account with that work stranded on the device.
+// When a signed-in user has no data of their own, move the guest document into
+// the account once. An account that already holds data is never touched, and
+// the guest copy is kept as a backup either way.
+// ---------------------------------------------------------------------------
+function importGuestData(user) {
+  enqueue(async () => {
+    const guest = getAllDataLocal();
+    if (!hasSemesters(guest)) return;
+
+    const remote = await getAllDataFirestore(user.uid);
+    if (hasSemesters(remote)) return;
+
+    await saveAllDataFirestore(user.uid, guest);
+    cachedData = guest;
+    cachedKey = userKey(user);
+
+    // Keep a backup copy rather than dropping the only copy of the grades, but
+    // clear the live guest key so the same data cannot be imported a second
+    // time into a different account on this device.
+    try {
+      localStorage.setItem(GUEST_IMPORTED_KEY, JSON.stringify(guest));
+      localStorage.removeItem(GUEST_KEY);
+    } catch (_) {}
+    console.log('✅ Moved grades saved on this device into the signed-in account');
+  }).catch((error) => {
+    console.error('❌ Failed to import guest grades into the account:', error);
+  });
+}
+
 // Read guest data from localStorage. Corrupt JSON is backed up and treated as
 // empty instead of throwing, which previously bricked every later read and
 // write for that guest.
 function getAllDataLocal() {
-  const raw = localStorage.getItem('gradepad_data');
+  const raw = localStorage.getItem(GUEST_KEY);
   if (!raw) return { semesters: [] };
 
   try {
@@ -211,7 +255,7 @@ function getAllDataLocal() {
 
 // Save guest data to localStorage.
 function saveAllDataLocal(data) {
-  localStorage.setItem('gradepad_data', JSON.stringify(data));
+  localStorage.setItem(GUEST_KEY, JSON.stringify(data));
 }
 
 // Renumber a course's evaluations so each one listed in orderedIds takes its
