@@ -44,6 +44,19 @@ GradePad is more than a grade calculator—it's a complete academic organizer th
 - **Guest Users**: All data stored in `localStorage` under `'gradepad_data'`
 - **Authenticated Users**: Data stored in Firestore at `users/{userId}/gradepad`
 - **Automatic Detection**: System automatically routes to appropriate storage based on auth state
+- **First Sign-In**: Grades saved on the device as a guest are moved into the account when it has none of its own
+
+### Security Rules
+Firestore access is restricted to each user's own document. The rules live in
+`firestore.rules` so they are reviewable alongside the code, and are published
+with:
+
+```bash
+firebase deploy --only firestore:rules
+```
+
+Editing rules in the Firebase console instead will leave this file stale, so
+change them here and deploy.
 
 ### Key Components
 - **Real-Time Calculations**: Event-driven grade and GPA updates

@@ -1,0 +1,16 @@
+rules_version = '2';
+
+// Grades are private to the student who wrote them. Every signed-in user gets
+// exactly one document, users/{uid}, and can only reach their own.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Anything outside a user's own document is unreachable from the client.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
