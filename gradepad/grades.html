@@ -742,8 +742,21 @@ if (semesterNameInput) {
   });
 }
 
+// Clear every rendered course table. The auth listener below runs again on
+// every sign-in and sign-out (including one triggered in another tab), and it
+// used to append its tables to whatever was already on screen, leaving a second
+// full copy of every course stacked under the first.
+function resetTables() {
+  document.querySelectorAll(".table-wrapper").forEach((wrapper) => wrapper.remove());
+}
+
+// Only the newest render may touch the DOM, so two auth emissions arriving
+// close together cannot interleave their results.
+let renderToken = 0;
+
 // Load courses and semester name when auth state is determined
 onAuthChange(async (user) => {
+  const token = ++renderToken;
   try {
     // Load semesters and ensure we have a valid semesterId (persisted across pages)
     const semesters = await loadSemesters();
@@ -796,22 +809,28 @@ onAuthChange(async (user) => {
       // with the semester-name auto-save so two are never created) so the save
       // wiring attaches and nothing the user types is lost.
       await ensureSemester("My Semester");
-      createNewTable([], true);
+      if (token !== renderToken) return;
+      resetTables();
+      createNewTable([]);
       return;
     }
 
     const courses = await loadCourses(currentSemesterId);
     console.log("📚 Loaded courses:", courses);
+    if (token !== renderToken) return;
+
+    // Every table on screen belongs to the identity we just replaced, so clear
+    // them all and render this account's courses from scratch.
+    resetTables();
 
     if (courses.length === 0) {
-      // No saved courses → just show blank table using existing HTML one
-      createNewTable([], true);
+      // No saved courses → show a single blank table
+      createNewTable([]);
     } else {
-      courses.forEach((course, index) => {
+      courses.forEach((course) => {
         const { id, code, topic, units, evaluations = [] } = course;
 
-        const hasExisting = !!document.querySelector('.table-wrapper');
-        const table = createNewTable(evaluations, index === 0 && hasExisting);
+        const table = createNewTable(evaluations);
 
         table.dataset.courseId = id;
 
@@ -825,19 +844,21 @@ onAuthChange(async (user) => {
 
         attachEventListeners(table);
       });
-      
+
       // Recalculate GPA after all courses are loaded with their correct units
       calculateCurrentGPA();
-      
+
       // Safety: if for any reason no table wrapper is present, ensure one exists
       if (!document.querySelector('.table-wrapper')) {
-        createNewTable([], true);
+        createNewTable([]);
       }
     }
   } catch (err) {
     console.error("❌ Failed to load or render courses:", err);
+    if (token !== renderToken) return;
     // Show blank table on error
-    createNewTable([], true);
+    resetTables();
+    createNewTable([]);
   }
 });
 
