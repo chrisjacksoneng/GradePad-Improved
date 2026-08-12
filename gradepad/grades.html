@@ -410,6 +410,37 @@
     #navGpa, .gpa-display, .finalGrade { font-weight: 700 !important; }
     /* Column headers: a touch stronger and tighter */
     th { font-weight: 600 !important; letter-spacing: 0.01em !important; }
+
+    /* Account control: the grades page had no sign-in state at all, so there
+       was no way to tell where your work was being saved. */
+    .header-right { position: relative; align-items: center; gap: 8px; }
+    .account-button {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255, 255, 255, 0.1); color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 20px;
+      padding: 8px 16px; margin-right: 20px;
+      font-size: 0.95rem; font-weight: 600; cursor: pointer;
+      max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      transition: background 0.2s ease;
+    }
+    .account-button:hover { background: rgba(255, 255, 255, 0.18); }
+    .account-menu {
+      position: absolute; top: 100%; right: 20px; margin-top: 6px;
+      background: #0b0b0b; border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px; padding: 8px; min-width: 180px; z-index: 1200;
+    }
+    .account-menu[hidden] { display: none; }
+    .account-menu .account-email {
+      display: block; color: rgba(255, 255, 255, 0.6);
+      font-size: 12px; padding: 2px 6px 8px; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .account-menu button {
+      width: 100%; background: #ffffff; color: #1f2937;
+      border: none; border-radius: 6px; padding: 8px 12px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+    .account-menu button:hover { background: #f0f0f0; }
   </style>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><rect x=%224%22 y=%222%22 width=%2216%22 height=%2220%22 rx=%222%22/><path d=%22M8 6h8%22/><circle cx=%228%22 cy=%2210%22 r=%221%22/><circle cx=%2210%22 cy=%2210%22 r=%221%22/><circle cx=%2212%22 cy=%2210%22 r=%221%22/><circle cx=%228%22 cy=%2213%22 r=%221%22/><circle cx=%2210%22 cy=%2213%22 r=%221%22/><circle cx=%2212%22 cy=%2213%22 r=%221%22/><circle cx=%228%22 cy=%2216%22 r=%221%22/><circle cx=%2210%22 cy=%2216%22 r=%221%22/><circle cx=%2212%22 cy=%2216%22 r=%221%22/><rect x=%2214%22 y=%2210%22 width=%224%22 height=%227%22 rx=%221%22/></svg>">
   <title>GradePad</title>
@@ -426,7 +457,13 @@
     <div class="header-center">
       <span id="navGpa" class="gpa-display">GPA: 0.00</span>
             </div>
-    <div class="header-right"></div>
+    <div class="header-right">
+      <button id="accountButton" class="account-button" aria-haspopup="true" aria-expanded="false">Sign in</button>
+      <div id="accountMenu" class="account-menu" hidden>
+        <span id="accountEmail" class="account-email"></span>
+        <button id="signOutButton" type="button">Sign out</button>
+      </div>
+    </div>
   </header>
     </div>
   </div>
@@ -530,6 +567,78 @@
 
   <script type="module" src="jsScripts/main.js"></script>
   <script type="module" src="jsScripts/db.js"></script>
+
+  <!-- Account control. Without this the grades page gave no sign-in state at
+       all: you could not tell whether your work was saving to your account or
+       only to this browser, and there was no way to sign out. -->
+  <script type="module">
+    import { signInWithGoogle, onAuthChange, signOutUser } from "./jsScripts/firebase.js";
+
+    const accountButton = document.getElementById("accountButton");
+    const accountMenu = document.getElementById("accountMenu");
+    const accountEmail = document.getElementById("accountEmail");
+    const signOutButton = document.getElementById("signOutButton");
+    let signedInUser = null;
+    let busy = false;
+
+    const closeMenu = () => {
+      accountMenu.hidden = true;
+      accountButton.setAttribute("aria-expanded", "false");
+    };
+
+    accountButton.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      if (signedInUser) {
+        const open = accountMenu.hidden;
+        accountMenu.hidden = !open;
+        accountButton.setAttribute("aria-expanded", open ? "true" : "false");
+        return;
+      }
+      if (busy) return;
+      busy = true;
+      accountButton.disabled = true;
+      try {
+        await signInWithGoogle();
+      } catch (err) {
+        if (!err || err.code !== "auth/cancelled-popup-request") {
+          console.error("Sign-in failed:", err);
+          alert("Sign-in failed. Please try again.");
+        }
+      } finally {
+        busy = false;
+        accountButton.disabled = false;
+      }
+    });
+
+    signOutButton.addEventListener("click", async () => {
+      closeMenu();
+      try {
+        await signOutUser();
+      } finally {
+        // Leave for the landing page rather than redrawing this one as a guest,
+        // so it is obvious the session ended and whose data is on screen.
+        window.location.href = "index.html";
+      }
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!accountMenu.hidden && !e.target.closest(".header-right")) closeMenu();
+    });
+
+    onAuthChange((user) => {
+      signedInUser = user;
+      closeMenu();
+      if (user) {
+        accountButton.textContent = user.displayName || user.email || "Account";
+        accountButton.title = user.email || "";
+        accountEmail.textContent = user.email || "";
+      } else {
+        accountButton.textContent = "Sign in";
+        accountButton.title = "Sign in to save your grades to your account";
+        accountEmail.textContent = "";
+      }
+    });
+  </script>
 
     <script type="module">
 import { onAuthChange } from "./jsScripts/firebase.js";
