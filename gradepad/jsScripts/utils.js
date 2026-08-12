@@ -89,14 +89,20 @@ export function showUndoToast(message, onUndo, onCommit, ms = 5000) {
 }
 
 // --- Save status indicator --------------------------------------------------
+// Every save ends in exactly one of markSaved() or markSaveFailed(). A failure
+// anywhere in a batch makes the whole batch report failure, because the point
+// of the indicator is to tell the user whether their work is safe.
 let saveStatusEl = null;
 let saveHideTimer = null;
 let savingCount = 0;
+let pendingFailure = null;
 
 function ensureSaveStatusEl() {
   if (!saveStatusEl) {
     saveStatusEl = document.createElement("div");
     saveStatusEl.className = "save-status";
+    saveStatusEl.setAttribute("role", "status");
+    saveStatusEl.setAttribute("aria-live", "polite");
     document.body.appendChild(saveStatusEl);
   }
   return saveStatusEl;
@@ -107,16 +113,39 @@ export function markSaving() {
   const el = ensureSaveStatusEl();
   clearTimeout(saveHideTimer);
   el.textContent = "Saving…";
-  el.classList.remove("saved");
+  el.classList.remove("saved", "failed");
   el.classList.add("show");
 }
 
 export function markSaved() {
+  finishSave(null);
+}
+
+// Report a save that did not reach storage. The message stays on screen far
+// longer than a success, since it is asking the user to do something.
+export function markSaveFailed(message) {
+  finishSave(message || "Not saved - check your connection");
+}
+
+function finishSave(failure) {
   savingCount = Math.max(0, savingCount - 1);
+  if (failure) pendingFailure = failure;
   if (savingCount > 0) return; // still other saves in flight
+
   const el = ensureSaveStatusEl();
-  el.textContent = "Saved ✓";
-  el.classList.add("show", "saved");
   clearTimeout(saveHideTimer);
+
+  if (pendingFailure) {
+    el.textContent = pendingFailure;
+    el.classList.remove("saved");
+    el.classList.add("show", "failed");
+    pendingFailure = null;
+    saveHideTimer = setTimeout(() => el.classList.remove("show"), 8000);
+    return;
+  }
+
+  el.textContent = "Saved ✓";
+  el.classList.remove("failed");
+  el.classList.add("show", "saved");
   saveHideTimer = setTimeout(() => el.classList.remove("show"), 1500);
 }

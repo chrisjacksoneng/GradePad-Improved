@@ -382,6 +382,12 @@
     }
     .save-status.show { opacity: 1; transform: translateY(0); }
     .save-status.saved { color: #6ee7a0; }
+    /* A failed save has to be able to stop someone, so it is not a quiet grey
+       pill like the success state. */
+    .save-status.failed {
+      color: #ffffff; background: #b3261e;
+      border-color: rgba(255, 255, 255, 0.35);
+    }
 
     /* ---- Modern type system: Inter for text, JetBrains Mono for course codes,
        tabular numerals so grades/weights/GPA line up in their columns. ---- */
@@ -645,6 +651,7 @@ import { onAuthChange } from "./jsScripts/firebase.js";
 import { loadCourses, saveSemester, loadSemesters, saveCourse, saveEvaluation } from "./jsScripts/db.js";
 import { createNewTable, attachEventListeners, attachAllEventListeners } from "./jsScripts/tableOps.js";
 import { calculateCurrentGPA } from "./jsScripts/gradeCalc.js";
+import { markSaving, markSaved, markSaveFailed } from "./jsScripts/utils.js";
 
 let currentSemesterId = new URLSearchParams(window.location.search).get("semesterId");
 const semesterNameInput = document.getElementById("semesterName");
@@ -683,6 +690,7 @@ async function saveSemesterName() {
   // the current one finishes, so the latest typed value is never dropped.
   if (savingSemester) { pendingSemesterSave = true; return; }
   savingSemester = true;
+  markSaving();
 
   try {
     // If we don't yet have an id, reuse an existing semester with the same name.
@@ -717,9 +725,13 @@ async function saveSemesterName() {
       attachAllEventListeners();
       // Remember last used semester for cross-page navigation
       try { localStorage.setItem('lastSemesterId', currentSemesterId); } catch(_) {}
+      markSaved();
+    } else {
+      markSaveFailed();
     }
   } catch (err) {
     console.error("❌ Failed to save semester:", err);
+    markSaveFailed();
   } finally {
     savingSemester = false;
     if (pendingSemesterSave) {

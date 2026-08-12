@@ -1,6 +1,6 @@
 import { calculateFinalGrade, calculateCurrentGPA } from './gradeCalc.js';
 import { setupMoveRowButton } from './dragDrop.js';
-import { toggleCollapse, showUndoToast, markSaving, markSaved } from './utils.js';
+import { toggleCollapse, showUndoToast, markSaving, markSaved, markSaveFailed } from './utils.js';
 import { attachSyllabusButtonListeners } from './modal.js';
 import { saveCourse, saveEvaluation, deleteCourse, restoreCourse, deleteEvaluation } from './db.js';
 
@@ -158,9 +158,15 @@ export function attachEventListeners(wrapper) {
       markSaving();
       try {
         const courseId = await ensureCourse();
-        if (courseId) await saveCourse({ semesterId, code, topic, units, courseId });
-      } finally {
+        // Both of these return null when the write did not land, so report the
+        // failure instead of finishing with a green "Saved ✓" either way.
+        if (!courseId) return markSaveFailed();
+        const saved = await saveCourse({ semesterId, code, topic, units, courseId });
+        if (!saved) return markSaveFailed();
         markSaved();
+      } catch (error) {
+        console.error('❌ Failed to save course header:', error);
+        markSaveFailed();
       }
     };
     // Text fields save when focus leaves them. The units dropdown saves on
@@ -193,13 +199,13 @@ export function attachEventListeners(wrapper) {
       markSaving();
       try {
         const courseId = await ensureCourse();
-        if (!courseId) return;
+        if (!courseId) return markSaveFailed();
 
         // If the row was removed while its course was still being created,
         // delete it rather than resurrecting it.
         if (row.dataset.removed === "true") {
           deleteEvaluation(semesterId, courseId, evalId);
-          return;
+          return markSaved();
         }
 
         const evalRows = [...wrapper.querySelectorAll("tr")].filter(r =>
@@ -211,9 +217,12 @@ export function attachEventListeners(wrapper) {
         // sharing an index with its neighbour, which reshuffles it on reload.
         const orderedIds = evalRows.map((r) => r.dataset.evalId).filter(Boolean);
         const savedId = await saveEvaluation({ semesterId, courseId, evalId, name, due, grade, weight, index, orderedIds });
-        if (savedId) row.dataset.evalId = savedId;
-      } finally {
+        if (!savedId) return markSaveFailed();
+        row.dataset.evalId = savedId;
         markSaved();
+      } catch (error) {
+        console.error('❌ Failed to save evaluation row:', error);
+        markSaveFailed();
       }
     };
 
