@@ -13,15 +13,20 @@ import { reorderEvaluations } from './db.js';
     return null;
   }
   
+  // Pointer events rather than mouse events, so reordering works with a finger
+  // or a stylus as well as a mouse. Touch reordering was impossible before.
   export function setupMoveRowButton(button) {
     if (button.dataset.moveWired === "true") return;
     button.dataset.moveWired = "true";
-    button.addEventListener("mousedown", function (e) {
+    button.addEventListener("pointerdown", function (e) {
+      if (e.button > 0) return; // ignore right/middle click
       e.preventDefault();
+      const row = e.target.closest("tr");
+      if (!row) return;
       isDragging = true;
-      draggedRow = e.target.closest("tr");
+      draggedRow = row;
       initialY = e.clientY;
-  
+
       const tbody = draggedRow.parentNode;
       const allowedRows = Array.from(tbody.querySelectorAll("tr")).filter(isAllowedRow);
       originalIndex = allowedRows.indexOf(draggedRow);
@@ -29,9 +34,12 @@ import { reorderEvaluations } from './db.js';
       draggedRow.classList.add("dragging");
     });
   }
-  
-  function handleMouseMove(e) {
+
+  function handlePointerMove(e) {
     if (!isDragging || !draggedRow) return;
+    // Reordering a row moves it in the DOM, which drops the implicit touch
+    // capture, so keep suppressing the browser's own scroll for the whole drag.
+    e.preventDefault();
     const deltaY = e.clientY - initialY;
     draggedRow.style.transform = `translateY(${deltaY}px)`;
   
@@ -60,7 +68,7 @@ import { reorderEvaluations } from './db.js';
     }
   }
   
-  function handleMouseUp() {
+  function handlePointerUp() {
     const releasedRow = draggedRow;
     const wasDragging = isDragging;
     if (isDragging && draggedRow) {
@@ -99,6 +107,9 @@ import { reorderEvaluations } from './db.js';
   let originalIndex = -1;
   let didReorder = false;
   
-  document.addEventListener("mousemove", handleMouseMove);
-  document.addEventListener("mouseup", handleMouseUp);
+  document.addEventListener("pointermove", handlePointerMove);
+  document.addEventListener("pointerup", handlePointerUp);
+  // A touch drag interrupted by the system (an incoming call, a gesture the
+  // browser takes over) ends with pointercancel and no pointerup.
+  document.addEventListener("pointercancel", handlePointerUp);
   

@@ -846,6 +846,9 @@ input:-webkit-autofill:active {
 
 .moveRowBtn {
   cursor: grab;
+  /* Claim the gesture so dragging a row on a touch screen reorders it instead
+     of scrolling the page. */
+  touch-action: none;
 }
 
 #page-summary {
@@ -1440,6 +1443,7 @@ button#addSemester br {
 
 tr.dragging {
   outline: 2px solid limegreen;
+  touch-action: none;
 }
 .dropbtn:hover,
 .dropbtn.active {
