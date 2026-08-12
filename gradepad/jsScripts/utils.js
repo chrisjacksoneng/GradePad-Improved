@@ -1,19 +1,4 @@
-export function toggleNav() {
-    const sidenav = document.getElementById("mySidenav");
-    const menuIcon = document.getElementById("menuIcon");
-
-    if (window.getComputedStyle(sidenav).width === "250px") {
-      sidenav.style.width = "0px";
-      menuIcon.innerHTML = "&#9776;";
-      menuIcon.classList.remove("open");
-    } else {
-      sidenav.style.width = "250px";
-      menuIcon.innerHTML = "&times;";
-      menuIcon.classList.add("open");
-    }
-  }
-
-  export function toggleCollapse(event) {
+export function toggleCollapse(event) {
     const tableWrapper = event.target.closest(".table-wrapper");
     const table = tableWrapper?.querySelector("table");
     if (!table) return;
